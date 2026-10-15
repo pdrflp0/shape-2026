@@ -1,0 +1,399 @@
+{
+  "name": "Shape 2026",
+  "start": "2026-10-19",
+  "end": "2026-12-31",
+  "goal": { "startWeight": 83, "targetMin": 76, "targetMax": 78, "rateMin": 0.5, "rateMax": 0.8 },
+
+  "phases": [
+    { "id": "readapt", "name": "Readaptação", "weeks": [1, 2], "sets": "two", "rir": { "compound": "3–4", "isolation": "3–4" }, "loadNote": "~50–60% da carga do prime", "primeFactor": 0.55 },
+    { "id": "build", "name": "Construção", "weeks": [3, 4, 5, 6, 7], "sets": "full", "rir": { "compound": "1–2", "isolation": "1–2" }, "loadNote": "Progressão dupla" },
+    { "id": "deload", "name": "Deload", "weeks": [8], "sets": "half", "rir": { "compound": "3–4", "isolation": "3–4" }, "loadNote": "–10 a –20% da carga", "deloadFactor": 0.85 },
+    { "id": "final", "name": "Reta final", "weeks": [9, 10, 11], "sets": "full", "rir": { "compound": "1–2", "isolation": "0–1 na última série" }, "loadNote": "Progressão dupla" }
+  ],
+
+  "schedule": { "1": "UA", "2": "LA", "3": "rest", "4": "UB", "5": "LB", "6": "free", "0": "rest" },
+  "sequence": ["UA", "LA", "UB", "LB"],
+
+  "rest": { "compound": 150, "isolation": 75 },
+  "commuteMinutes": 20,
+  "stepsGoal": [8000, 10000],
+
+  "cardio": [
+    { "weeks": [1, 2], "minutes": 15, "incline": "8–10%", "speed": 6, "saturday": null },
+    { "weeks": [3, 4, 5, 6, 7], "minutes": 20, "incline": "máxima (12–15%)", "speed": 6, "saturday": null },
+    { "weeks": [8], "minutes": 15, "incline": "8–10%", "speed": 6, "saturday": null },
+    { "weeks": [9, 10, 11], "minutes": 25, "incline": "máxima (12–15%)", "speed": 6, "saturday": "30–40 min de esteira ou aula de GreenBike" }
+  ],
+  "cardioTips": ["Não segure no apoio", "Ofegante, mas conseguindo falar frases curtas"],
+
+  "workouts": {
+    "UA": {
+      "name": "Superior A",
+      "focus": "Força",
+      "exercises": [
+        {
+          "id": "supino-reto",
+          "name": "Supino reto com barra",
+          "equip": "Banco reto + barra olímpica",
+          "alt": { "name": "Supino máquina articulado", "equip": "Máquina articulada de peito", "anim": "machinePress", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [6, 8], "type": "compound", "load": "barbell", "inc": 2.5,
+          "targets": ["Peitoral", "Tríceps", "Deltoide anterior"],
+          "steps": ["Deite com os olhos na linha da barra e pés firmes no chão.", "Retraia e deprima as escápulas (\"guarde\" os ombros no bolso de trás).", "Desça a barra controlada até a linha do mamilo, cotovelos a ~45° do tronco.", "Toque o peito sem quicar e empurre de volta até estender os braços."],
+          "mistakes": ["Quicar a barra no peito.", "Abrir os cotovelos a 90° (estressa o ombro).", "Tirar o quadril do banco.", "Soltar as escápulas no meio da série."],
+          "why": "Principal composto de empurrar: carga alta para força e massa de peitoral e tríceps. É o termômetro da sua força de tronco superior.",
+          "anim": "bench"
+        },
+        {
+          "id": "remada-curvada",
+          "name": "Remada curvada com barra",
+          "equip": "Barra livre",
+          "alt": { "name": "Remada cavalinho (T-bar)", "equip": "Aparelho T-bar / barra no landmine", "anim": "row", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [6, 8], "type": "compound", "load": "barbell", "inc": 2.5,
+          "targets": ["Dorsais", "Romboides", "Trapézio médio"],
+          "steps": ["Pegada pronada na largura dos ombros, joelhos levemente flexionados.", "Incline o tronco a ~45° com a coluna neutra e o abdômen firme.", "Puxe levando o cotovelo em direção ao quadril.", "Segure 1 s contraído e desça controlado."],
+          "mistakes": ["Arredondar a lombar.", "Usar impulso do tronco para subir a barra.", "Puxar com o bíceps em vez do cotovelo.", "Encurtar a amplitude no final da série."],
+          "why": "Composto de puxar horizontal que equilibra o supino, dá espessura às costas e protege os ombros.",
+          "anim": "row"
+        },
+        {
+          "id": "desenvolvimento-halteres",
+          "name": "Desenvolvimento com halteres sentado",
+          "equip": "Banco com encosto a 90° + halteres",
+          "alt": { "name": "Desenvolvimento máquina", "equip": "Máquina de desenvolvimento", "anim": "ohp", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [8, 10], "type": "compound", "load": "dumbbell", "inc": 2,
+          "targets": ["Deltoide anterior", "Deltoide lateral", "Tríceps"],
+          "steps": ["Sente com a lombar apoiada no encosto.", "Halteres na linha da orelha/queixo, cotovelos levemente à frente.", "Empurre para cima sem bater os halteres.", "Desça controlado até a linha da orelha."],
+          "mistakes": ["Arquear a lombar para fora do encosto.", "Bater os halteres em cima.", "Descer só até a testa (amplitude curta)."],
+          "why": "Composto vertical para ombros fortes e largos. Os halteres permitem um caminho mais natural para a articulação.",
+          "anim": "ohp"
+        },
+        {
+          "id": "puxada-frontal",
+          "name": "Puxada frontal na polia",
+          "equip": "Pulley alto com barra longa",
+          "alt": { "name": "Barra fixa no graviton", "equip": "Graviton (barra assistida)", "anim": "pulldown", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [8, 10], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Dorsais"],
+          "steps": ["Pegada um pouco mais aberta que os ombros, coxas travadas no apoio.", "Peito \"estufado\" e leve inclinação para trás.", "Puxe a barra até o peito alto levando os cotovelos para baixo.", "Volte controlado até alongar bem as dorsais."],
+          "mistakes": ["Balançar o tronco para trás.", "Puxar a barra atrás da nuca.", "Não estender os braços em cima."],
+          "why": "Puxada vertical que dá largura às costas e complementa a remada.",
+          "anim": "pulldown"
+        },
+        {
+          "id": "elevacao-lateral",
+          "name": "Elevação lateral com halteres",
+          "equip": "Halteres leves",
+          "alt": { "name": "Elevação lateral na polia", "equip": "Polia baixa com pegador", "anim": "cableLateral", "load": "cable", "inc": 1 },
+          "sets": 3, "reps": [12, 15], "type": "isolation", "load": "dumbbell", "inc": 1,
+          "targets": ["Deltoide lateral"],
+          "steps": ["Em pé, halteres ao lado do corpo, leve inclinação à frente.", "Cotovelos levemente flexionados e um pouco à frente.", "Suba até a linha do ombro, liderando com o cotovelo.", "Desça devagar, controle total."],
+          "mistakes": ["Carga pesada com balanço do corpo.", "Subir acima da linha do ombro encolhendo o trapézio.", "Girar o polegar para baixo (\"jarra\")."],
+          "why": "O deltoide lateral é o que dá a aparência de ombros largos e cintura mais fina.",
+          "anim": "lateral"
+        },
+        {
+          "id": "rosca-direta",
+          "name": "Rosca direta (barra W)",
+          "equip": "Barra W",
+          "alt": { "name": "Rosca direta na polia", "equip": "Polia baixa com barra", "anim": "curl", "load": "cable", "inc": 2.5 },
+          "sets": 2, "reps": [10, 12], "type": "isolation", "load": "barbell", "inc": 1,
+          "superset": "UA-biset",
+          "targets": ["Bíceps", "Braquial"],
+          "steps": ["Em pé, pegada na parte angulada da barra W.", "Cotovelos fixos ao lado do tronco.", "Suba contraindo o bíceps sem mover os cotovelos.", "Desça em 2–3 s."],
+          "mistakes": ["Balançar o tronco.", "Levar os cotovelos para frente.", "Descer rápido demais."],
+          "why": "Volume direto de bíceps num bi-set que economiza tempo.",
+          "anim": "curl"
+        },
+        {
+          "id": "triceps-corda",
+          "name": "Tríceps na polia com corda",
+          "equip": "Polia alta com corda",
+          "alt": { "name": "Tríceps na polia com barra reta", "equip": "Polia alta com barra", "anim": "pushdown", "load": "cable", "inc": 2.5 },
+          "sets": 2, "reps": [10, 12], "type": "isolation", "load": "cable", "inc": 2.5,
+          "superset": "UA-biset",
+          "targets": ["Tríceps"],
+          "steps": ["De frente para a polia, leve inclinação do tronco.", "Cotovelos colados ao corpo.", "Estenda os braços e abra a corda embaixo.", "Volte controlado até ~90° de cotovelo."],
+          "mistakes": ["Cotovelos se afastando do corpo.", "Jogar o peso do corpo na corda.", "Não abrir a corda no final."],
+          "why": "Fecha o bi-set com o antagonista do bíceps; tríceps é 2/3 do volume do braço.",
+          "anim": "pushdown"
+        }
+      ]
+    },
+
+    "LA": {
+      "name": "Inferior A",
+      "focus": "Força",
+      "exercises": [
+        {
+          "id": "agachamento-livre",
+          "name": "Agachamento livre (rack)",
+          "equip": "Rack / gaiola + barra olímpica",
+          "alt": { "name": "Agachamento no smith / hack", "equip": "Smith machine ou hack", "anim": "hack", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [6, 8], "type": "compound", "load": "barbell", "inc": 2.5,
+          "targets": ["Quadríceps", "Glúteos"],
+          "steps": ["Barra apoiada no trapézio, pés na largura dos ombros, pontas levemente abertas.", "Inspire, trave o abdômen e desça sentando entre os calcanhares.", "Desça até pelo menos a coxa paralela, joelhos na direção da ponta dos pés.", "Suba empurrando o chão, mantendo a coluna neutra."],
+          "mistakes": ["Joelhos fechando para dentro.", "Tirar o calcanhar do chão.", "Arredondar a lombar no fundo.", "Descer pouco."],
+          "why": "O rei dos compostos de perna: muita massa muscular trabalhando, ótimo para força e gasto calórico.",
+          "anim": "squat"
+        },
+        {
+          "id": "stiff-barra",
+          "name": "Stiff com barra",
+          "equip": "Barra livre",
+          "alt": { "name": "Stiff com halteres", "equip": "Halteres", "anim": "rdl", "load": "dumbbell", "inc": 2 },
+          "sets": 3, "reps": [8, 8], "type": "compound", "load": "barbell", "inc": 2.5,
+          "targets": ["Posteriores de coxa", "Glúteos"],
+          "steps": ["Em pé, barra na frente das coxas, joelhos levemente flexionados.", "Jogue o quadril para trás mantendo a coluna neutra.", "Deslize a barra rente às pernas até o meio da canela ou até sentir o posterior alongar.", "Volte empurrando o quadril para frente."],
+          "mistakes": ["Curvar a coluna para descer mais.", "Afastar a barra do corpo.", "Flexionar demais os joelhos (vira agachamento)."],
+          "why": "Trabalha os posteriores no alongamento, essencial para equilíbrio da coxa e saúde do joelho.",
+          "anim": "rdl"
+        },
+        {
+          "id": "leg-press",
+          "name": "Leg press 45°",
+          "equip": "Leg press inclinado 45°",
+          "alt": { "name": "Leg horizontal", "equip": "Leg press horizontal", "anim": "legpress", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [10, 10], "type": "compound", "load": "machine", "inc": 10,
+          "targets": ["Quadríceps", "Glúteos"],
+          "steps": ["Lombar e quadril bem apoiados no encosto.", "Pés na largura dos ombros no meio da plataforma.", "Desça até ~90° de joelho sem tirar a lombar do banco.", "Empurre sem travar o joelho em cima."],
+          "mistakes": ["Tirar a lombar do banco no fundo.", "Travar o joelho em cima.", "Amplitude curta com muita carga."],
+          "why": "Volume extra de quadríceps com pouca demanda de coluna, depois do agachamento.",
+          "anim": "legpress"
+        },
+        {
+          "id": "mesa-flexora",
+          "name": "Mesa flexora (deitado)",
+          "equip": "Mesa flexora",
+          "alt": { "name": "Cadeira flexora", "equip": "Cadeira flexora (sentado)", "anim": "seatedCurl", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [10, 12], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Posteriores de coxa"],
+          "steps": ["Deite com o joelho logo após a borda do banco.", "Ajuste o rolo acima do calcanhar.", "Flexione os joelhos com o quadril colado no banco.", "Desça controlado."],
+          "mistakes": ["Levantar o quadril do banco.", "Soltar o peso na descida."],
+          "why": "Isolado de posterior na função de flexão do joelho, complementa o stiff.",
+          "anim": "lyingCurl"
+        },
+        {
+          "id": "panturrilha-pe",
+          "name": "Panturrilha em pé",
+          "equip": "Máquina de panturrilha em pé",
+          "alt": { "name": "Panturrilha no smith / leg press", "equip": "Smith ou leg press", "anim": "calf", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [10, 15], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Gastrocnêmio"],
+          "steps": ["Ponta dos pés na borda do degrau.", "Desça até alongar e pause 1 s embaixo.", "Suba o máximo possível.", "Sem quicar."],
+          "mistakes": ["Quicar no fundo.", "Amplitude curta.", "Flexionar os joelhos para ajudar."],
+          "why": "Panturrilha responde bem a amplitude completa e pausas; em pé foca o gastrocnêmio.",
+          "anim": "calf"
+        },
+        {
+          "id": "prancha",
+          "name": "Prancha",
+          "equip": "Colchonete",
+          "alt": { "name": "Prancha com joelhos apoiados", "equip": "Colchonete", "anim": "plank" },
+          "sets": 3, "reps": [40, 40], "unit": "s", "type": "isolation", "load": "bodyweight", "inc": 0,
+          "targets": ["Core", "Reto abdominal", "Transverso"],
+          "steps": ["Antebraços no chão, cotovelos abaixo dos ombros.", "Contraia glúteo e abdômen.", "Quadril alinhado entre ombro e tornozelo.", "Respire curto e mantenha a posição."],
+          "mistakes": ["Quadril caindo (lombar afunda).", "Quadril muito alto.", "Prender a respiração."],
+          "why": "Estabilidade do tronco, que protege a lombar nos compostos pesados.",
+          "anim": "plank"
+        }
+      ]
+    },
+
+    "UB": {
+      "name": "Superior B",
+      "focus": "Volume",
+      "exercises": [
+        {
+          "id": "supino-inclinado-halteres",
+          "name": "Supino inclinado com halteres (~30°)",
+          "equip": "Banco inclinado + halteres",
+          "alt": { "name": "Supino inclinado máquina", "equip": "Máquina de supino inclinado", "anim": "machinePress", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [8, 12], "type": "compound", "load": "dumbbell", "inc": 2,
+          "targets": ["Peitoral superior (clavicular)", "Deltoide anterior", "Tríceps"],
+          "steps": ["Banco a ~30°, escápulas retraídas.", "Desça os halteres até sentir o peitoral alongar.", "Cotovelos a ~45° do tronco.", "Suba sem bater os halteres."],
+          "mistakes": ["Banco inclinado demais (vira desenvolvimento).", "Bater os halteres em cima.", "Descer pouco."],
+          "why": "Prioriza a parte superior do peitoral, que costuma ficar para trás.",
+          "anim": "incline"
+        },
+        {
+          "id": "remada-baixa",
+          "name": "Remada baixa com triângulo",
+          "equip": "Polia baixa sentada + triângulo",
+          "alt": { "name": "Remada máquina sentada", "equip": "Máquina de remada", "anim": "seatedRow", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [10, 12], "type": "compound", "load": "machine", "inc": 5,
+          "targets": ["Dorsais", "Romboides"],
+          "steps": ["Sente com os pés apoiados e joelhos levemente flexionados.", "Tronco firme e ereto.", "Puxe até o umbigo espremendo as escápulas.", "Volte alongando bem as costas."],
+          "mistakes": ["Balançar o tronco para frente e para trás.", "Encolher os ombros.", "Não alongar na volta."],
+          "why": "Remada com tensão constante e boa amplitude para volume de costas.",
+          "anim": "seatedRow"
+        },
+        {
+          "id": "peck-deck",
+          "name": "Peck deck",
+          "equip": "Máquina peck deck / voador",
+          "alt": { "name": "Crossover", "equip": "Polias altas (crossover)", "anim": "fly", "load": "cable", "inc": 2.5 },
+          "sets": 3, "reps": [12, 15], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Peitoral"],
+          "steps": ["Ajuste o banco para as mãos ficarem na linha do peito.", "Braços levemente flexionados e fixos.", "Feche como quem \"abraça uma árvore\".", "Segure 1 s contraído e volte devagar."],
+          "mistakes": ["Flexionar e estender o cotovelo (vira supino).", "Voltar além do confortável para o ombro."],
+          "why": "Isolado de peito com pouca fadiga sistêmica, ótimo para volume.",
+          "anim": "fly"
+        },
+        {
+          "id": "puxada-neutra",
+          "name": "Puxada com pegada neutra",
+          "equip": "Pulley alto + pegador neutro (triângulo/barra neutra)",
+          "alt": { "name": "Pulldown unilateral", "equip": "Polia alta com pegador simples", "anim": "pulldown", "load": "cable", "inc": 2.5 },
+          "sets": 3, "reps": [10, 12], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Dorsais"],
+          "steps": ["Pegada neutra (palmas uma de frente para a outra).", "Cotovelos descem rentes ao corpo.", "Puxe até o peito alto.", "Alongue bem em cima."],
+          "mistakes": ["Encurtar em cima.", "Balançar o tronco."],
+          "why": "Variação de puxada que trabalha a dorsal em maior amplitude e é amigável para o ombro.",
+          "anim": "pulldown"
+        },
+        {
+          "id": "elevacao-lateral-polia",
+          "name": "Elevação lateral na polia",
+          "equip": "Polia baixa com pegador",
+          "alt": { "name": "Máquina de elevação lateral", "equip": "Máquina de deltoide lateral", "anim": "lateral", "load": "machine", "inc": 2.5 },
+          "sets": 3, "reps": [15, 20], "type": "isolation", "load": "cable", "inc": 1,
+          "targets": ["Deltoide lateral"],
+          "steps": ["Polia na posição mais baixa, de lado para ela.", "Cabo passando por trás ou pela frente do corpo.", "Suba até a linha do ombro.", "Desça devagar mantendo a tensão."],
+          "mistakes": ["Inclinar o corpo para longe para roubar.", "Subir acima do ombro."],
+          "why": "A polia mantém tensão constante, inclusive embaixo, onde o halter quase não trabalha.",
+          "anim": "cableLateral"
+        },
+        {
+          "id": "face-pull",
+          "name": "Face pull (corda na polia alta)",
+          "equip": "Polia alta com corda",
+          "alt": { "name": "Crucifixo inverso no peck deck", "equip": "Peck deck (de frente para o encosto)", "anim": "facepull", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [15, 15], "type": "isolation", "load": "cable", "inc": 2.5,
+          "targets": ["Deltoide posterior", "Manguito rotador"],
+          "steps": ["Polia na altura do rosto ou acima.", "Pegue a corda com os polegares para trás.", "Puxe em direção ao rosto com cotovelos altos.", "Abra as mãos no final, segure 1 s."],
+          "mistakes": ["Cotovelos baixos (vira remada).", "Carga pesada com o tronco indo para trás."],
+          "why": "Saúde dos ombros e postura, equilibra todo o volume de empurrar.",
+          "anim": "facepull"
+        },
+        {
+          "id": "rosca-inclinada",
+          "name": "Rosca inclinada com halteres",
+          "equip": "Banco a ~45° + halteres",
+          "alt": { "name": "Rosca Scott", "equip": "Banco Scott", "anim": "curl", "load": "machine", "inc": 2.5 },
+          "sets": 3, "reps": [10, 12], "type": "isolation", "load": "dumbbell", "inc": 1,
+          "superset": "UB-biset",
+          "targets": ["Bíceps (cabeça longa)"],
+          "steps": ["Banco a ~45°, costas apoiadas.", "Braços pendendo e alongados para trás.", "Suba sem levar os cotovelos para frente.", "Desça devagar até alongar."],
+          "mistakes": ["Tirar as costas do banco.", "Levar o cotovelo para frente."],
+          "why": "Trabalha o bíceps alongado, estímulo diferente da rosca direta do treino A.",
+          "anim": "inclineCurl"
+        },
+        {
+          "id": "triceps-frances-polia",
+          "name": "Tríceps francês na polia",
+          "equip": "Polia com corda",
+          "alt": { "name": "Tríceps testa", "equip": "Barra W + banco reto", "anim": "overheadExt", "load": "barbell", "inc": 1 },
+          "sets": 3, "reps": [10, 12], "type": "isolation", "load": "cable", "inc": 2.5,
+          "superset": "UB-biset",
+          "targets": ["Tríceps (cabeça longa)"],
+          "steps": ["De costas para a polia, um pé à frente.", "Braços acima da cabeça, cotovelos apontando para frente.", "Estenda totalmente os braços.", "Volte alongando atrás da cabeça."],
+          "mistakes": ["Abrir os cotovelos.", "Mover o ombro em vez do cotovelo."],
+          "why": "Com o braço acima da cabeça a cabeça longa do tríceps trabalha alongada.",
+          "anim": "overheadExt"
+        }
+      ]
+    },
+
+    "LB": {
+      "name": "Inferior B",
+      "focus": "Volume",
+      "exercises": [
+        {
+          "id": "hack-machine",
+          "name": "Hack machine",
+          "equip": "Hack machine",
+          "alt": { "name": "Leg press com pés baixos", "equip": "Leg press 45°", "anim": "legpress", "load": "machine", "inc": 10 },
+          "sets": 3, "reps": [10, 12], "type": "compound", "load": "machine", "inc": 5,
+          "targets": ["Quadríceps"],
+          "steps": ["Costas e ombros bem apoiados.", "Pés no meio/baixo da plataforma.", "Desça fundo e controlado.", "Suba sem travar o joelho."],
+          "mistakes": ["Descer pouco.", "Tirar o quadril do encosto no fundo."],
+          "why": "Foco em quadríceps com segurança para descer fundo e acumular volume.",
+          "anim": "hack"
+        },
+        {
+          "id": "bulgaro",
+          "name": "Agachamento búlgaro",
+          "equip": "Banco + halteres",
+          "alt": { "name": "Afundo no smith", "equip": "Smith machine", "anim": "bulgarian", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [8, 10], "perSide": true, "type": "compound", "load": "dumbbell", "inc": 2,
+          "targets": ["Quadríceps", "Glúteos"],
+          "warnings": [{ "weeks": [1, 2], "text": "Semanas 1–2: só com peso corporal.", "bodyweight": true }],
+          "steps": ["Pé de trás apoiado no banco, pé da frente bem à frente.", "Desça o joelho de trás em direção ao chão.", "Tronco mais ereto = mais quadríceps; mais inclinado = mais glúteo.", "Suba empurrando com o pé da frente."],
+          "mistakes": ["Pé da frente muito perto do banco.", "Joelho da frente fechando para dentro.", "Perder o equilíbrio por pressa."],
+          "why": "Unilateral que corrige assimetrias e trabalha muito glúteo e quadríceps com carga baixa.",
+          "anim": "bulgarian"
+        },
+        {
+          "id": "hip-thrust",
+          "name": "Elevação pélvica (hip thrust)",
+          "equip": "Banco + barra com protetor",
+          "alt": { "name": "Máquina de glúteo", "equip": "Máquina de glúteo / hip thrust", "anim": "hipThrust", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [10, 10], "type": "compound", "load": "barbell", "inc": 5,
+          "targets": ["Glúteos"],
+          "steps": ["Escápulas apoiadas no banco, barra no quadril.", "Pés firmes, joelhos a ~90° em cima.", "Suba até o quadril alinhar com o tronco, 1 s em cima.", "Queixo para o peito durante todo o movimento."],
+          "mistakes": ["Hiperestender a lombar em cima.", "Pés longe demais (vira posterior).", "Olhar para o teto."],
+          "why": "O melhor exercício para glúteo no encurtamento, com pouca fadiga para a lombar.",
+          "anim": "hipThrust"
+        },
+        {
+          "id": "cadeira-flexora",
+          "name": "Cadeira flexora (sentado)",
+          "equip": "Cadeira flexora",
+          "alt": { "name": "Flexora unilateral", "equip": "Flexora em pé / unilateral", "anim": "seatedCurl", "load": "machine", "inc": 2.5 },
+          "sets": 3, "reps": [12, 12], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Posteriores de coxa"],
+          "steps": ["Joelho alinhado com o eixo da máquina.", "Quadril bem encaixado e a trava sobre as coxas.", "Flexione até o máximo.", "Desça controlado."],
+          "mistakes": ["Quadril escorregando do banco.", "Soltar o peso na volta."],
+          "why": "Sentado, o posterior trabalha mais alongado, o que favorece a hipertrofia.",
+          "anim": "seatedCurl"
+        },
+        {
+          "id": "cadeira-extensora",
+          "name": "Cadeira extensora",
+          "equip": "Cadeira extensora",
+          "alt": { "name": "Extensora unilateral", "equip": "Cadeira extensora (uma perna)", "anim": "legExt", "load": "machine", "inc": 2.5 },
+          "sets": 3, "reps": [12, 15], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Quadríceps (reto femoral)"],
+          "steps": ["Joelho alinhado com o eixo da máquina.", "Estenda as pernas totalmente.", "Segure 1 s contraído em cima.", "Desça controlado."],
+          "mistakes": ["Chutar o peso.", "Tirar o quadril do banco."],
+          "why": "Único exercício que trabalha bem o reto femoral, finaliza o quadríceps.",
+          "anim": "legExt"
+        },
+        {
+          "id": "panturrilha-sentado",
+          "name": "Panturrilha sentado",
+          "equip": "Máquina de panturrilha sentado",
+          "alt": { "name": "Panturrilha sentado com halter", "equip": "Banco + halter no joelho", "anim": "seatedCalf", "load": "dumbbell", "inc": 2 },
+          "sets": 3, "reps": [15, 15], "type": "isolation", "load": "machine", "inc": 5,
+          "targets": ["Sóleo"],
+          "steps": ["Apoio sobre os joelhos, ponta dos pés na plataforma.", "Desça até alongar, pausa de 1 s embaixo.", "Suba o máximo.", "Sem quicar."],
+          "mistakes": ["Quicar.", "Amplitude curta."],
+          "why": "Com o joelho flexionado o sóleo trabalha mais — complementa a panturrilha em pé.",
+          "anim": "seatedCalf"
+        },
+        {
+          "id": "abdominal-polia",
+          "name": "Abdominal na polia (crunch)",
+          "equip": "Polia alta com corda",
+          "alt": { "name": "Abdominal máquina", "equip": "Máquina de abdominal", "anim": "cableCrunch", "load": "machine", "inc": 5 },
+          "sets": 3, "reps": [12, 15], "type": "isolation", "load": "cable", "inc": 2.5,
+          "targets": ["Reto abdominal"],
+          "steps": ["Ajoelhado de frente para a polia, corda ao lado da cabeça.", "Quadril parado.", "\"Enrole\" a coluna levando o peito ao quadril.", "Volte controlado."],
+          "mistakes": ["Puxar com os braços.", "Sentar sobre os calcanhares (usar o quadril)."],
+          "why": "Abdominal com carga progressiva, fortalece o core e melhora a definição.",
+          "anim": "cableCrunch"
+        }
+      ]
+    }
+  }
+}

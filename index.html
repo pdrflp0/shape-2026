@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Shape 2026</title>
+  <meta name="description" content="App pessoal de treino Upper/Lower, progressão dupla, cardio e dieta.">
+  <meta name="theme-color" content="#07080a">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Shape 2026">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    #splash { position: fixed; inset: 0; z-index: 200; background: #07080a; display: grid; place-items: center; transition: opacity .4s; }
+    #splash.gone { opacity: 0; pointer-events: none; }
+    #splash .lg { width: 84px; height: 84px; border-radius: 22px; background: #c6ff3d; display: grid; place-items: center; animation: sp 1.2s ease-in-out infinite; }
+    @keyframes sp { 50% { transform: scale(.92); } }
+  </style>
+</head>
+<body>
+  <div id="splash"><div class="lg"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#0b0f02" stroke-width="2.6" stroke-linecap="round"><path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/></svg></div></div>
+  <main id="views"></main>
+  <nav id="tabbar" aria-label="Abas"></nav>
+  <div id="flash"></div>
+  <noscript>Ative o JavaScript para usar o Shape 2026.</noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
