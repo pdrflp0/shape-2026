@@ -3,7 +3,12 @@ import { kv } from './db.js';
 
 // ---------- Áudio ----------
 let ctx;
+// Safari 17+: "transient" = som curto que abaixa a música (Spotify etc.) por um instante em vez de pausá-la
+function audioSessionTransient() {
+  try { if (navigator.audioSession && navigator.audioSession.type !== 'transient') navigator.audioSession.type = 'transient'; } catch (e) {}
+}
 export function unlockAudio() {
+  audioSessionTransient();
   try {
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
@@ -11,7 +16,10 @@ export function unlockAudio() {
     const b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource();
     s.buffer = b; s.connect(ctx.destination); s.start(0);
   } catch (e) {}
+  // a voz também precisa ser "destravada" por um toque no iOS
+  try { if (!voiceUnlocked && 'speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); voiceUnlocked = true; } } catch (e) {}
 }
+let voiceUnlocked = false;
 export async function beep({ freq = 880, dur = 0.18, count = 1, gap = 0.12 } = {}) {
   const st = Object.assign({ sound: true, volume: 0.6 }, await kv.get('settings', {}));
   if (!st.sound) return;
@@ -28,6 +36,20 @@ export async function beep({ freq = 880, dur = 0.18, count = 1, gap = 0.12 } = {
       o.connect(g); g.connect(ctx.destination);
       o.start(t); o.stop(t + dur + 0.02);
     }
+  } catch (e) {}
+}
+
+// Voz (opcional, em Perfil): anuncia o fim do descanso e a próxima série
+export async function speak(text) {
+  const st = Object.assign({ voice: false, sound: true }, await kv.get('settings', {}));
+  if (!st.voice || !st.sound || !('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-BR'; u.rate = 1.05;
+    const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith('pt-br'));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
   } catch (e) {}
 }
 
@@ -49,7 +71,11 @@ export async function keepAwake(on) {
     } else if (!on && lock) { await lock.release(); lock = null; }
   } catch (e) { lock = null; }
 }
-document.addEventListener('visibilitychange', () => { if (wantLock && document.visibilityState === 'visible') keepAwake(true); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (wantLock) keepAwake(true);
+  try { if (ctx && ctx.state !== 'running') ctx.resume(); } catch (e) {}
+});
 
 // ---------- Contagem regressiva genérica ----------
 // O tempo restante é sempre endAt - Date.now(): continua correto se a tela bloquear ou o app for para o fundo.

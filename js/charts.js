@@ -58,7 +58,7 @@ export function lineChart(series, opts = {}) {
 
 export function barChart(points, opts = {}) {
   if (!points.length) return `<div class="empty-chart">${opts.empty || 'Sem dados ainda'}</div>`;
-  const max = Math.max(...points.map(p => p.y)) * 1.1 || 1;
+  const max = Math.max(...points.map(p => p.y), opts.goal || 0) * 1.1 || 1;
   const bw = Math.min(44, (W - PL - PR) / points.length);
   let g = '';
   for (let i = 0; i <= 2; i++) {
@@ -67,9 +67,11 @@ export function barChart(points, opts = {}) {
   }
   points.forEach((p, i) => {
     const h = p.y / max * (H - PT - PB), x = PL + i * bw + bw * 0.18, w = bw * 0.64;
-    g += `<rect class="barr grow" style="animation-delay:${i * 40}ms;transform-origin:${x}px ${H - PB}px" x="${x}" y="${H - PB - h}" width="${w}" height="${h}" rx="3"/>`;
+    const miss = opts.goal && p.y < opts.goal ? ' miss' : '';
+    g += `<rect class="barr grow${miss}" style="animation-delay:${i * 40}ms;transform-origin:${x}px ${H - PB}px" x="${x}" y="${H - PB - h}" width="${w}" height="${h}" rx="3"/>`;
     if (points.length <= 12 || i % Math.ceil(points.length / 8) === 0) g += `<text class="axis" x="${x + w / 2}" y="${H - 6}" text-anchor="middle">${p.label}</text>`;
   });
+  if (opts.goal) { const y = H - PB - opts.goal / max * (H - PT - PB); g += `<line class="goal" x1="${PL}" x2="${W - PR}" y1="${y}" y2="${y}"/><text class="axis goal-t" x="${W - PR}" y="${y - 4}" text-anchor="end">meta ${Math.round(opts.goal)}</text>`; }
   return `<svg class="chart" viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
 

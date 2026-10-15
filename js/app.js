@@ -1,7 +1,7 @@
 // Boot do app: carrega o programa, registra o service worker e monta as abas.
 import { loadProgram } from './program.js';
-import { nav, ICON, $$, toast } from './ui.js';
-import { requestPersist } from './db.js';
+import { nav, ICON, $$, applyTheme, setHaptics } from './ui.js';
+import { requestPersist, kv } from './db.js';
 import { unlockAudio, hhmmss, keepAwake } from './timer.js';
 import { renderToday } from './screens/today.js';
 import { renderWorkouts } from './screens/workouts.js';
@@ -19,6 +19,10 @@ const TABS = [
 ];
 
 async function boot() {
+  // preferências visuais antes do primeiro render (evita piscar a cor padrão)
+  const st = await kv.get('settings', {});
+  applyTheme(st.theme || 'lime');
+  setHaptics(st.haptics !== false);
   await loadProgram();
   const bar = document.getElementById('tabbar');
   bar.innerHTML = TABS.map(([k, l]) => `<button class="tab" data-tab="${k}">${ICON[k]}<span>${l}</span></button>`).join('');
@@ -51,13 +55,25 @@ async function boot() {
   });
 }
 
+// Nova versão baixada: oferece recarregar (treino em andamento e descanso são restaurados depois)
+function showUpdate() {
+  if (document.querySelector('.update-bar')) return;
+  const b = document.createElement('div');
+  b.className = 'update-bar';
+  b.innerHTML = '<span>✨ Nova versão do app pronta</span><button class="btn sm primary">Atualizar</button>';
+  b.querySelector('button').onclick = () => location.reload();
+  document.body.appendChild(b);
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
+      // o iOS mantém o app aberto por dias: procura versão nova sempre que ele volta para a frente
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
       reg.addEventListener('updatefound', () => {
         const w = reg.installing;
         w && w.addEventListener('statechange', () => {
-          if (w.state === 'installed' && navigator.serviceWorker.controller) toast('Atualização baixada — reabra o app para aplicar');
+          if (w.state === 'installed' && navigator.serviceWorker.controller) showUpdate();
         });
       });
     }).catch(() => {});

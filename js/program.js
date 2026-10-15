@@ -12,7 +12,14 @@ export async function loadProgram() {
     w.key = wk;
     w.exercises.forEach((e, i) => { e.workout = wk; e.index = i; P.ex[e.id] = e; });
   }
+  P.baseGoal = Object.assign({}, P.goal);
+  await applyPersonal();
   return P;
+}
+
+// Metas personalizadas no Perfil sobrescrevem as do program.json
+export async function applyPersonal() {
+  P.goal = Object.assign({}, P.baseGoal, await kv.get('goal', {}));
 }
 
 // ---------- Datas (sempre em horário local) ----------
@@ -80,12 +87,19 @@ export async function completedSessions() {
   return all.filter(s => s.endedAt).sort((a, b) => a.startedAt - b.startedAt);
 }
 
+// Treinos feitos antes do início do programa (ou marcados como teste) não contam para a sequência
+export const countsForProgram = s => !s.test && s.date >= P.start;
+export const programSessions = async () => (await completedSessions()).filter(countsForProgram);
+export const PLANNED_SESSIONS = () => P.sequence.length * TOTAL_WEEKS;
+
+// Próximo pendente: o treino da sequência feito menos vezes; empate → o que vem primeiro na ordem A→B.
+// Assim, se você pular um (ou fizer outro fora de ordem), o que faltou continua aparecendo.
 export async function nextWorkoutKey() {
-  const done = await completedSessions();
-  if (!done.length) return P.sequence[0];
-  const last = done[done.length - 1].workout;
-  const i = P.sequence.indexOf(last);
-  return P.sequence[(i + 1) % P.sequence.length];
+  const done = await programSessions();
+  const count = Object.fromEntries(P.sequence.map(k => [k, 0]));
+  for (const s of done) if (s.workout in count) count[s.workout]++;
+  const min = Math.min(...Object.values(count));
+  return P.sequence.find(k => count[k] === min);
 }
 
 export const plannedFor = d => P.schedule[String(d.getDay())];

@@ -2,7 +2,7 @@
 import { db, kv } from '../db.js';
 import { P, effWeek, cardioForWeek, dateKey } from '../program.js';
 import { Countdown, beep, flash, keepAwake, unlockAudio, mmss } from '../timer.js';
-import { nav, header, toast, esc, ICON, fmtNum } from '../ui.js';
+import { nav, header, toast, esc, ICON, fmtNum, haptic } from '../ui.js';
 import { getDay, saveDay } from '../day.js';
 
 export async function openCardio(sessionId = null, kind = 'post') {
@@ -27,6 +27,8 @@ async function renderCardio(el, view, sessionId, kind) {
   const running = t && t.paused == null && remaining > 0;
   const [g0, g1] = P.stepsGoal;
   const done = session?.cardio?.done;
+  // última inclinação usada (ou o início da faixa do plano)
+  const lastIncl = (await kv.get('lastIncline', null)) ?? (parseFloat(plan.incline) || 10);
 
   el.innerHTML = `
     ${header('Cardio', { sub: `Semana ${week} · ${isSat ? 'Sábado (opcional)' : 'Pós-musculação'}` })}
@@ -39,6 +41,8 @@ async function renderCardio(el, view, sessionId, kind) {
         <div class="stat"><div class="lbl">Velocidade</div><div class="val num">${plan.speed}<span class="unit">km/h</span></div></div>
         <div class="stat"><div class="lbl">Inclinação</div><div class="val" style="font-size:14px">${esc(plan.incline)}</div></div>
       </div>
+      <div class="row gap mt" style="justify-content:center"><small>Inclinação que você usou:</small>
+        <div class="stepper" style="width:150px;height:46px"><button data-inc="-0.5" aria-label="menos">−</button><input data-incl inputmode="decimal" value="${String(lastIncl).replace('.', ',')}"><button data-inc="0.5" aria-label="mais">+</button></div><small>%</small></div>
       ${done ? '<div class="tag acc mt">✓ Cardio registrado</div>' : ''}
     </div>
     <div class="card mt"><div class="card-title">Lembretes</div>
@@ -67,7 +71,9 @@ async function renderCardio(el, view, sessionId, kind) {
   const save = async (mins) => {
     stopUI();
     await kv.del('cardioTimer');
-    const rec = { minutes: mins, incline: plan.incline, speed: plan.speed, done: true, at: Date.now(), type: isSat ? 'saturday' : 'treadmill' };
+    const used = parseFloat(String(el.querySelector('[data-incl]').value).replace(',', '.')) || null;
+    if (used) await kv.set('lastIncline', used);
+    const rec = { minutes: mins, incline: plan.incline, inclineUsed: used, speed: plan.speed, done: true, at: Date.now(), type: isSat ? 'saturday' : 'treadmill' };
     if (sessionId) { const s = await db.get('sessions', sessionId); s.cardio = rec; await db.put('sessions', s); }
     else { const d = await getDay(); d.cardio.push(rec); await saveDay(d); }
     keepAwake(false);
@@ -77,6 +83,10 @@ async function renderCardio(el, view, sessionId, kind) {
 
   el.onclick = async e => {
     const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.inc) {
+      const i = el.querySelector('[data-incl]'), v = Math.max(0, (parseFloat(i.value.replace(',', '.')) || 0) + +b.dataset.inc);
+      i.value = String(v).replace('.', ','); kv.set('lastIncline', v); haptic(); return;
+    }
     if (b.dataset.start != null) {
       unlockAudio(); keepAwake(true);
       const tt = t && t.paused != null ? { key, duration: t.duration, endAt: Date.now() + t.paused } : { key, duration: dur, endAt: Date.now() + dur * 1000 };

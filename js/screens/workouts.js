@@ -1,9 +1,9 @@
 // Treinos: os 4 treinos, periodização, biblioteca de exercícios e detalhe de sessões passadas.
-import { db } from '../db.js';
+import { db, kv } from '../db.js';
 import { P, nextWorkoutKey, groupsOf, setsFor, rirFor, effWeek, phaseForWeek, cardioForWeek, weekOf, completedSessions, fmtDate, TOTAL_WEEKS, parseKey, addDays, fmtShort } from '../program.js';
 import { historyFor, histKey, recordsFor, fmtKg, variantDef } from '../progression.js';
 import { figureSVG, animateFigures } from '../figures.js';
-import { nav, header, esc, ICON, fmtNum, confirmSheet } from '../ui.js';
+import { nav, header, esc, ICON, fmtNum, confirmSheet, toast } from '../ui.js';
 import { startSession } from './session.js';
 import { hhmmss } from '../timer.js';
 
@@ -107,26 +107,50 @@ export async function renderExerciseInfo(el, id) {
   animateFigures(el);
 }
 
+let editing = null; // id da sessão em modo edição
+
 export async function renderSessionDetail(el, id) {
   const s = await db.get('sessions', id);
+  if (!s) return nav.pop();
   const w = P.workouts[s.workout];
+  const ed = editing === id;
+  const feel = s.feel ? ['😫', '😕', '😐', '🙂', '🔥'][s.feel - 1] : '—';
   el.innerHTML = `
-    ${header(w.name, { sub: fmtDate(s.date, true), right: `<button class="icon-btn" data-del aria-label="Apagar">${ICON.trash}</button>` })}
+    ${header(w ? w.name : s.workout, { sub: fmtDate(s.date, true) + (s.test ? ' · teste' : ''), right: `<button class="icon-btn" data-edit aria-label="${ed ? 'Cancelar edição' : 'Editar'}">${ed ? '✕' : ICON.edit}</button>` })}
     <div class="grid3">
       <div class="stat"><div class="lbl">Duração</div><div class="val num" style="font-size:18px">${hhmmss(s.endedAt - s.startedAt)}</div></div>
       <div class="stat"><div class="lbl">Volume</div><div class="val num" style="font-size:18px">${fmtNum(s.volume)}</div></div>
       <div class="stat"><div class="lbl">Cardio</div><div class="val num" style="font-size:18px">${s.cardio ? s.cardio.minutes + ' min' : '—'}</div></div>
     </div>
+    <p class="muted center">Como foi: ${feel}</p>
+    ${ed ? '<div class="info-box">Corrija carga/reps de qualquer série feita. O volume e a progressão são recalculados.</div>' : ''}
     <div class="list mt">${Object.entries(s.entries).map(([exId, en]) => {
       const ex = P.ex[exId]; if (!ex) return '';
-      const sets = en.sets.filter(x => x.done);
-      return `<div class="li"><div class="li-main"><b>${esc(variantDef(ex, en.variant).name)}${en.variant === 'alt' ? ' <span class="tag">alt.</span>' : ''}</b>
+      const sets = en.sets.map((x, i) => ({ ...x, i })).filter(x => x.done);
+      const name = `<b>${esc(variantDef(ex, en.variant).name)}${en.variant === 'alt' ? ' <span class="tag">alt.</span>' : ''}</b>`;
+      if (ed) return `<div class="li" style="display:block">${name}${sets.map(x => `
+        <div class="row gap mt"><small style="width:22px">${x.i + 1}</small>
+          ${ex.unit === 's' ? '' : `<input class="field" style="min-height:44px" inputmode="decimal" data-ekg="${exId}:${x.i}" value="${fmtKg(x.kg)}"><small>kg</small>`}
+          <input class="field" style="min-height:44px" inputmode="numeric" data-ereps="${exId}:${x.i}" value="${x.reps}"><small>${ex.unit === 's' ? 's' : 'reps'}</small></div>`).join('') || '<small class="muted">não feito</small>'}</div>`;
+      return `<div class="li"><div class="li-main">${name}
         <small>${sets.length ? sets.map(x => ex.unit === 's' ? `${x.reps}s` : `${fmtKg(x.kg)}×${x.reps}${x.rir != null ? ` @${x.rir}` : ''}`).join(' · ') : 'não feito'}${en.note ? ' · 📝 ' + esc(en.note) : ''}</small></div></div>`;
     }).join('')}</div>
-    ${s.prs && s.prs.length ? `<div class="card mt"><div class="card-title">Recordes</div>${s.prs.map(p => `<div>🏆 ${esc(p.name)} — ${p.kind}: ${p.value}</div>`).join('')}</div>` : ''}`;
+    ${s.prs && s.prs.length && !ed ? `<div class="card mt"><div class="card-title">Recordes</div>${s.prs.map(p => `<div>🏆 ${esc(p.name)} — ${p.kind}: ${p.value}</div>`).join('')}</div>` : ''}
+    ${ed ? `<div class="dock"><button class="btn danger xl" data-del>${ICON.trash}</button><button class="btn primary xl flex" data-save>Salvar correções</button></div>`
+      : `<div class="row gap mt2"><button class="btn flex" data-share>${ICON.share} Compartilhar</button></div>`}`;
   el.onclick = async e => {
+    if (e.target.closest('[data-edit]')) { editing = ed ? null : id; return nav.refresh(); }
+    if (e.target.closest('[data-share]')) { const { shareSessionCard } = await import('../share.js'); const prof = await kv.get('profile', {}); return shareSessionCard(s, prof.name || 'Pedro Felipe'); }
+    if (e.target.closest('[data-save]')) {
+      el.querySelectorAll('[data-ekg]').forEach(i => { const [ex, k] = i.dataset.ekg.split(':'); s.entries[ex].sets[+k].kg = parseFloat(i.value.replace(',', '.')) || 0; });
+      el.querySelectorAll('[data-ereps]').forEach(i => { const [ex, k] = i.dataset.ereps.split(':'); s.entries[ex].sets[+k].reps = parseInt(i.value) || 0; });
+      let volume = 0, sets = 0;
+      for (const [exId, en] of Object.entries(s.entries)) { if (!P.ex[exId]) continue; for (const x of en.sets) if (x.done) { volume += (x.kg || 0) * x.reps; sets++; } }
+      s.volume = volume; s.setsDone = sets;
+      await db.put('sessions', s); editing = null; toast('Treino corrigido ✓', 'ok'); return nav.refresh();
+    }
     if (e.target.closest('[data-del]') && await confirmSheet('Apagar este treino?', 'O histórico e a sequência serão recalculados.', 'Apagar', true)) {
-      await db.del('sessions', id); nav.pop();
+      await db.del('sessions', id); editing = null; nav.pop();
     }
   };
 }

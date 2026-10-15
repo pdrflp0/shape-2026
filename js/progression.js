@@ -96,8 +96,13 @@ export function suggest(ex, variant, sessions, primeLoads, date = new Date(), ex
     res.reps = fill(i => Math.min(hi, Math.max(lo, (last.sets[i] || last.sets[last.sets.length - 1]).reps + 1)));
     res.msg = 'Só peso corporal nesta fase';
   } else if (allTop) {
-    res.kg = lastKg + def.inc; res.action = 'up'; res.reps = fill(lo);
-    res.msg = `Bateu o topo (${hi}) em todas → suba a carga (${incText(def)})`;
+    // RIR registrado: se sobrou muita reserva (≥3 em todas, fora da readaptação/deload), sobe 2 degraus
+    const rirs = last.sets.map(x => x.rir).filter(x => x != null);
+    const easy = ph.sets === 'full' && rirs.length === last.sets.length && rirs.every(x => x >= 3);
+    res.kg = lastKg + def.inc * (easy ? 2 : 1); res.action = 'up'; res.reps = fill(lo);
+    res.msg = easy
+      ? `Topo (${hi}) em todas e sobrou RIR 3+ → suba 2 degraus (+${fmtKg(def.inc * 2)} kg)`
+      : `Bateu o topo (${hi}) em todas → suba a carga (${incText(def)})`;
   } else if (below(last) && below(prev)) {
     res.kg = roundLoad(lastKg * 0.9, def.load); res.action = 'down'; res.reps = fill(lo);
     res.msg = `Abaixo de ${lo} reps 2 sessões seguidas → reduza ~10%`;
@@ -147,4 +152,38 @@ export function sessionStats(h) {
   let maxKg = 0, e1 = 0, vol = 0;
   for (const s of h.sets) { maxKg = Math.max(maxKg, s.kg || 0); e1 = Math.max(e1, epley(s.kg, s.reps)); vol += (s.kg || 0) * s.reps; }
   return { maxKg, e1, vol };
+}
+
+// ---------- Anilhas por lado ----------
+export const DEFAULT_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+export function platesPerSide(total, bar = 20, plates = DEFAULT_PLATES) {
+  let side = (total - bar) / 2;
+  if (!(side > 0)) return null;
+  const out = [];
+  for (const p of [...plates].sort((a, b) => b - a)) {
+    while (side >= p - 1e-6) { out.push(p); side -= p; }
+  }
+  return { plates: out, rest: Math.round(side * 100) / 100 };
+}
+export function platesText(total, bar, plates) {
+  const r = platesPerSide(total, bar, plates);
+  if (!r) return total > 0 && total <= bar ? `só a barra (${fmtKg(bar)})` : '';
+  const f = n => String(n).replace('.', ','); // anilhas precisam de 2 casas (1,25)
+  return `por lado: ${r.plates.length ? r.plates.map(f).join(' + ') : '—'}${r.rest > 0 ? ` · não fecha (faltam ${f(r.rest)})` : ''}`;
+}
+
+// ---------- Aquecimento sugerido (compostos) ----------
+export function warmupSets(work, def, bar = 20) {
+  if (!(work > 0)) return [];
+  const steps = def.load === 'barbell'
+    ? [[0, 10], [0.5, 6], [0.7, 4], [0.85, 2]]
+    : [[0.5, 10], [0.75, 5]];
+  const out = [];
+  for (const [f, reps] of steps) {
+    const kg = f === 0 ? bar : roundLoad(work * f, def.load);
+    if (def.load === 'barbell' && f > 0 && kg <= bar) continue;
+    if (kg >= work || (out.length && kg <= out[out.length - 1].kg)) continue;
+    out.push({ kg, reps });
+  }
+  return out;
 }

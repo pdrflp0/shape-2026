@@ -26,6 +26,8 @@ export const ICON = {
   steps: '<svg viewBox="0 0 24 24"><path d="M8 3c2 0 3 2 3 5s-1 5-3 5-3-2-3-5 1-5 3-5zM6 15h4v2a2 2 0 01-4 0zM16 7c2 0 3 2 3 5s-1 5-3 5-3-2-3-5 1-5 3-5zM14 19h4v1a2 2 0 01-4 0z"/></svg>',
   scale: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M9 9a4 4 0 016 0l-3 3"/></svg>',
   trash: '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v7h14v-7"/></svg>',
+  edit: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></svg>',
 };
 
 // ---------- Navegação ----------
@@ -208,13 +210,20 @@ export async function compressImage(file, max = 1400, q = 0.82) {
     return await new Promise(res => cv.toBlob(res, 'image/jpeg', q));
   } finally { URL.revokeObjectURL(url); }
 }
-const urlCache = new WeakMap();
-export function blobURL(b) {
+// URLs de imagens: cache por chave (id + data) para não criar uma URL nova a cada render
+const urlCache = new Map();
+export function blobURL(b, key) {
   if (!b) return '';
-  if (!urlCache.has(b)) urlCache.set(b, URL.createObjectURL(b));
-  return urlCache.get(b);
+  if (!key) return URL.createObjectURL(b);
+  const hit = urlCache.get(key);
+  if (hit && hit.b.size === b.size) return hit.url;
+  if (hit) URL.revokeObjectURL(hit.url);
+  const url = URL.createObjectURL(b);
+  urlCache.set(key, { b, url });
+  return url;
 }
-export function pickImage({ capture = true } = {}) {
+// Sem o atributo "capture", o iOS oferece Tirar Foto / Fototeca / Arquivos
+export function pickImage({ capture = false } = {}) {
   return new Promise(res => {
     const i = document.createElement('input');
     i.type = 'file'; i.accept = 'image/*';
@@ -236,3 +245,41 @@ onAfterRender(el => {
     })(t0);
   });
 });
+
+// ---------- Vibração / háptico ----------
+// iOS 18+: tocar num <input type=checkbox switch> gera um "tique" do Taptic Engine. Android: Vibration API.
+let hapticEl = null, hapticOn = true;
+export const setHaptics = on => { hapticOn = on; };
+export function haptic(kind = 'light') {
+  if (!hapticOn) return;
+  try {
+    if (navigator.vibrate) { navigator.vibrate(kind === 'heavy' ? [20, 40, 20] : 12); return; }
+    if (!hapticEl) {
+      hapticEl = document.createElement('label');
+      hapticEl.setAttribute('aria-hidden', 'true');
+      hapticEl.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+      const i = document.createElement('input');
+      i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+      hapticEl.appendChild(i);
+      document.body.appendChild(hapticEl);
+    }
+    hapticEl.click();
+    if (kind === 'heavy') setTimeout(() => hapticEl.click(), 90);
+  } catch (e) {}
+}
+
+// ---------- Tema (cor de destaque personalizável) ----------
+export const THEMES = {
+  lime: { name: 'Limão', accent: '#c6ff3d', rgb: '198,255,61', hi: '#e6ff8f', ink: '#0b0f02', accent2: '#ff8a3d' },
+  orange: { name: 'Laranja', accent: '#ff8a3d', rgb: '255,138,61', hi: '#ffc08f', ink: '#1a0b00', accent2: '#c6ff3d' },
+  cyan: { name: 'Ciano', accent: '#3de0ff', rgb: '61,224,255', hi: '#a5f3fc', ink: '#001a20', accent2: '#ff8a3d' },
+  violet: { name: 'Violeta', accent: '#b18cff', rgb: '177,140,255', hi: '#d9c8ff', ink: '#12062b', accent2: '#3de0ff' },
+  red: { name: 'Vermelho', accent: '#ff5a6a', rgb: '255,90,106', hi: '#ffa3ab', ink: '#2a0006', accent2: '#ffc53d' },
+  gold: { name: 'Ouro', accent: '#ffc53d', rgb: '255,197,61', hi: '#ffe29a', ink: '#1f1400', accent2: '#3de0ff' },
+};
+export function applyTheme(key) {
+  const t = THEMES[key] || THEMES.lime;
+  const r = document.documentElement.style;
+  r.setProperty('--accent', t.accent); r.setProperty('--acc-rgb', t.rgb); r.setProperty('--accent-hi', t.hi);
+  r.setProperty('--accent-ink', t.ink); r.setProperty('--accent-2', t.accent2);
+}

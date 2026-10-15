@@ -2,6 +2,7 @@
   "name": "Shape 2026",
   "short_name": "Shape 2026",
   "description": "App pessoal de treino Upper/Lower com progressão dupla, cardio e dieta.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

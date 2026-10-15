@@ -1,17 +1,20 @@
 // Service worker: guarda todos os arquivos para o app funcionar 100% offline.
 // Estratégia: responde do cache na hora e atualiza em segundo plano (stale-while-revalidate).
-// Ao editar program.json, a mudança aparece na segunda abertura do app; para forçar, aumente VERSION.
-const VERSION = 'shape2026-v1';
+// Ao publicar uma versão nova, aumente VERSION: o app baixa tudo de uma vez e oferece "Atualizar".
+const VERSION = 'shape2026-v2';
 const ASSETS = [
   './', 'index.html', 'manifest.json', 'program.json', 'css/app.css',
   'js/app.js', 'js/db.js', 'js/program.js', 'js/progression.js', 'js/timer.js', 'js/figures.js', 'js/charts.js', 'js/ui.js', 'js/day.js',
+  'js/achievements.js', 'js/share.js',
   'js/screens/today.js', 'js/screens/workouts.js', 'js/screens/session.js', 'js/screens/cardio.js',
   'js/screens/progress.js', 'js/screens/diet.js', 'js/screens/profile.js',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon.svg',
 ];
+// telas de abertura: só a do seu modelo é usada, então ficam no cache sob demanda (não no pré-cache)
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache: 'reload' ignora o cache HTTP do GitHub Pages (10 min) e baixa a versão nova de verdade
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {

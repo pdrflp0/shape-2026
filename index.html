@@ -15,16 +15,28 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1320x2868.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1206x2622.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1260x2736.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1290x2796.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1179x2556.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1284x2778.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1170x2532.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1125x2436.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-828x1792.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-750x1334.png">
   <link rel="stylesheet" href="css/app.css">
   <style>
-    #splash { position: fixed; inset: 0; z-index: 200; background: #07080a; display: grid; place-items: center; transition: opacity .4s; }
+    /* mesma posição/tamanho da tela de abertura do iOS (icons/splash-*.png) para a transição não "pular" */
+    #splash { position: fixed; inset: 0; z-index: 200; background: #07080a; transition: opacity .4s; }
     #splash.gone { opacity: 0; pointer-events: none; }
-    #splash .lg { width: 84px; height: 84px; border-radius: 22px; background: #c6ff3d; display: grid; place-items: center; animation: sp 1.2s ease-in-out infinite; }
+    #splash .lg { position: absolute; left: 50%; top: 44%; width: 24vmin; height: 24vmin; margin: -12vmin 0 0 -12vmin; border-radius: 23%; background: #c6ff3d; animation: sp 1.2s ease-in-out infinite; }
+    #splash .lg svg { width: 100%; height: 100%; }
     @keyframes sp { 50% { transform: scale(.92); } }
   </style>
 </head>
 <body>
-  <div id="splash"><div class="lg"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#0b0f02" stroke-width="2.6" stroke-linecap="round"><path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/></svg></div></div>
+  <div id="splash"><div class="lg"><svg viewBox="0 0 100 100" fill="#07080a"><rect x="26" y="46.5" width="48" height="7" rx="2"/><rect x="25.5" y="30" width="9" height="40" rx="3"/><rect x="65.5" y="30" width="9" height="40" rx="3"/><rect x="18" y="37" width="7" height="26" rx="2.5"/><rect x="75" y="37" width="7" height="26" rx="2.5"/></svg></div></div>
   <main id="views"></main>
   <nav id="tabbar" aria-label="Abas"></nav>
   <div id="flash"></div>

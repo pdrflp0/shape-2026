@@ -5,10 +5,10 @@
   "goal": { "startWeight": 83, "targetMin": 76, "targetMax": 78, "rateMin": 0.5, "rateMax": 0.8 },
 
   "phases": [
-    { "id": "readapt", "name": "Readaptação", "weeks": [1, 2], "sets": "two", "rir": { "compound": "3–4", "isolation": "3–4" }, "loadNote": "~50–60% da carga do prime", "primeFactor": 0.55 },
-    { "id": "build", "name": "Construção", "weeks": [3, 4, 5, 6, 7], "sets": "full", "rir": { "compound": "1–2", "isolation": "1–2" }, "loadNote": "Progressão dupla" },
-    { "id": "deload", "name": "Deload", "weeks": [8], "sets": "half", "rir": { "compound": "3–4", "isolation": "3–4" }, "loadNote": "–10 a –20% da carga", "deloadFactor": 0.85 },
-    { "id": "final", "name": "Reta final", "weeks": [9, 10, 11], "sets": "full", "rir": { "compound": "1–2", "isolation": "0–1 na última série" }, "loadNote": "Progressão dupla" }
+    { "id": "readapt", "brief": "Volta gradual: 2 séries por exercício, bem longe da falha, cargas leves. Foco em técnica e em reacostumar articulações.", "name": "Readaptação", "weeks": [1, 2], "sets": "two", "rir": { "compound": "3–4", "isolation": "3–4" }, "loadNote": "~50–60% da carga do prime", "primeFactor": 0.55 },
+    { "id": "build", "brief": "Séries completas e RIR 1–2. Bateu o topo da faixa em todas as séries? Sobe a carga.", "name": "Construção", "weeks": [3, 4, 5, 6, 7], "sets": "full", "rir": { "compound": "1–2", "isolation": "1–2" }, "loadNote": "Progressão dupla" },
+    { "id": "deload", "brief": "Semana leve: metade das séries e 10–20% menos carga. Recuperar para a reta final.", "name": "Deload", "weeks": [8], "sets": "half", "rir": { "compound": "3–4", "isolation": "3–4" }, "loadNote": "–10 a –20% da carga", "deloadFactor": 0.85 },
+    { "id": "final", "brief": "Reta final: séries completas, compostos RIR 1–2 e isolados até RIR 0–1 na última série.", "name": "Reta final", "weeks": [9, 10, 11], "sets": "full", "rir": { "compound": "1–2", "isolation": "0–1 na última série" }, "loadNote": "Progressão dupla" }
   ],
 
   "schedule": { "1": "UA", "2": "LA", "3": "rest", "4": "UB", "5": "LB", "6": "free", "0": "rest" },
@@ -96,7 +96,7 @@
           "name": "Rosca direta (barra W)",
           "equip": "Barra W",
           "alt": { "name": "Rosca direta na polia", "equip": "Polia baixa com barra", "anim": "curl", "load": "cable", "inc": 2.5 },
-          "sets": 2, "reps": [10, 12], "type": "isolation", "load": "barbell", "inc": 1,
+          "sets": 2, "reps": [10, 12], "type": "isolation", "load": "barbell", "inc": 1, "bar": 10,
           "superset": "UA-biset",
           "targets": ["Bíceps", "Braquial"],
           "steps": ["Em pé, pegada na parte angulada da barra W.", "Cotovelos fixos ao lado do tronco.", "Suba contraindo o bíceps sem mover os cotovelos.", "Desça em 2–3 s."],

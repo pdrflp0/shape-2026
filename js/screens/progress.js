@@ -1,6 +1,6 @@
 // Progresso: peso (média semanal, ritmo, alertas), exercícios (carga, 1RM, volume, recordes), fotos, medidas, heatmap.
-import { db, kv } from '../db.js';
-import { P, dateKey, parseKey, addDays, fmtDate, fmtShort, completedSessions, daysBetween, weekOf, TOTAL_WEEKS } from '../program.js';
+import { db } from '../db.js';
+import { P, dateKey, parseKey, addDays, fmtDate, fmtShort, completedSessions, countsForProgram, daysBetween, phaseForWeek, PLANNED_SESSIONS, TOTAL_WEEKS } from '../program.js';
 import { historyFor, histKey, sessionStats, recordsFor, fmtKg } from '../progression.js';
 import { lineChart, barChart } from '../charts.js';
 import { nav, header, sheet, toast, esc, ICON, fmtNum, confirmSheet, compressImage, pickImage, blobURL, $$ } from '../ui.js';
@@ -83,6 +83,7 @@ async function renderWeight(body) {
   const daysLeft = Math.max(0, daysBetween(new Date(), parseKey(P.end)));
   const curAvg = weekly.length ? weekly[weekly.length - 1].avg : null;
   const needed = curAvg ? (curAvg - tgt) / Math.max(1, daysLeft / 7) : null;
+  const proj = curAvg && rate != null ? curAvg - rate * (daysLeft / 7) : null;
   const pts = ws.map(w => ({ x: parseKey(w.id).getTime(), y: w.kg }));
   const avgPts = weekly.map(w => ({ x: w.mid.getTime(), y: w.avg }));
   const guide = [{ x: parseKey(P.start).getTime(), y: g.startWeight }, { x: parseKey(P.end).getTime(), y: tgt }];
@@ -100,7 +101,7 @@ async function renderWeight(body) {
     ${fast ? `<div class="warn-box" style="color:var(--danger);background:rgba(255,90,95,.1);border-color:rgba(255,90,95,.3)">⚠️ Você perdeu mais de 1 kg/semana por 2 semanas seguidas. Aumente um pouco as calorias (≈ +150–200 kcal) para preservar músculo.</div>` : ''}
     <div class="grid2">
       <div class="stat"><div class="lbl">Ritmo atual</div><div class="val num">${rate == null ? '—' : (rate >= 0 ? '−' : '+') + fmtKg(Math.abs(Math.round(rate * 100) / 100))}<span class="unit">kg/sem</span></div><span class="tag ${v.cls}" style="margin-top:6px">${v.txt}</span></div>
-      <div class="stat"><div class="lbl">Meta 31/12</div><div class="val num">${g.targetMin}–${g.targetMax}<span class="unit">kg</span></div><small>${needed != null ? `precisa de ~${fmtKg(Math.max(0, Math.round(needed * 100) / 100))} kg/sem` : `${daysLeft} dias restantes`}</small></div>
+      <div class="stat"><div class="lbl">Meta 31/12</div><div class="val num">${fmtKg(g.targetMin)}–${fmtKg(g.targetMax)}<span class="unit">kg</span></div><small>${needed != null ? `precisa de ~${fmtKg(Math.max(0, Math.round(needed * 100) / 100))} kg/sem` : `${daysLeft} dias restantes`}</small>${proj != null ? `<small style="display:block">no ritmo atual: <b class="${proj <= g.targetMax ? 'accent' : ''}">~${fmtKg(Math.round(proj * 10) / 10)} kg</b></small>` : ''}</div>
       <div class="stat"><div class="lbl">Total perdido</div><div class="val num">${last ? fmtKg(Math.round((startW - last.kg) * 10) / 10) : '—'}<span class="unit">kg</span></div><small>desde ${fmtKg(startW)} kg</small></div>
       <div class="stat"><div class="lbl">Registros esta semana</div><div class="val num">${ws.filter(w => daysBetween(parseKey(w.id), new Date()) < 7).length}/3</div><small>sugestão: 3x em jejum</small></div>
     </div>
@@ -164,16 +165,16 @@ async function renderPhotos(body) {
   body.innerHTML = `
     ${due ? `<div class="warn-box">📸 Hora das fotos de progresso (a cada 2 semanas): frente, lado e costas. Mesma luz, mesmo lugar, de manhã.</div>` : ''}
     <div class="card"><div class="card-title">Nova sessão de fotos · ${fmtDate(dateKey(), true)}</div>
-      <div class="grid3">${POSES.map(([k, l]) => { const p = find(dateKey(), k); return `<button class="stack" data-shot="${k}" style="margin:0">${p ? `<img src="${blobURL(p.blob)}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px">` : `<div class="ph" style="aspect-ratio:3/4;border-radius:12px;background:var(--bg-2);border:1px dashed var(--line);display:grid;place-items:center">${ICON.camera}</div>`}<small style="margin-top:6px">${l}</small></button>`; }).join('')}</div></div>
+      <div class="grid3">${POSES.map(([k, l]) => { const p = find(dateKey(), k); return `<button class="stack" data-shot="${k}" style="margin:0">${p ? `<img src="${blobURL(p.blob, p.id)}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px">` : `<div class="ph" style="aspect-ratio:3/4;border-radius:12px;background:var(--bg-2);border:1px dashed var(--line);display:grid;place-items:center">${ICON.camera}</div>`}<small style="margin-top:6px">${l}</small></button>`; }).join('')}</div></div>
     <div class="card"><div class="card-title">Antes / depois</div>
       ${dates.length >= 1 ? `
         <div class="seg mb">${POSES.map(([k, l]) => `<button class="${cmp.pose === k ? 'on' : ''}" data-pose="${k}">${l}</button>`).join('')}</div>
         <div class="form-grid mb"><select class="field" data-a>${dates.map(d => `<option ${d === cmp.a ? 'selected' : ''} value="${d}">${fmtDate(d)}</option>`).join('')}</select>
           <select class="field" data-b>${dates.map(d => `<option ${d === cmp.b ? 'selected' : ''} value="${d}">${fmtDate(d)}</option>`).join('')}</select></div>
-        ${A && B ? `<div class="compare" data-cmp style="--x:50%"><img src="${blobURL(A.blob)}" alt="antes"><img class="after" src="${blobURL(B.blob)}" alt="depois"><div class="knob"></div><span class="lb" style="left:10px">${fmtShort(cmp.a)}</span><span class="lb" style="right:10px">${fmtShort(cmp.b)}</span></div>`
+        ${A && B ? `<div class="compare" data-cmp style="--x:50%"><img src="${blobURL(A.blob, A.id)}" alt="antes"><img class="after" src="${blobURL(B.blob, B.id)}" alt="depois"><div class="knob"></div><span class="lb" style="left:10px">${fmtShort(cmp.a)}</span><span class="lb" style="right:10px">${fmtShort(cmp.b)}</span></div>`
           : '<p class="muted">Falta a foto desta pose em uma das datas.</p>'}` : '<p class="muted" style="margin:0">Tire suas primeiras fotos acima.</p>'}
     </div>
-    ${dates.length ? `<div class="card"><div class="card-title">Galeria</div>${dates.slice().reverse().map(d => `<div class="row between mt"><b>${fmtDate(d, true)}</b><button class="btn sm ghost" data-deld="${d}">${ICON.trash}</button></div><div class="photo-grid mt">${POSES.map(([k]) => { const p = find(d, k); return p ? `<img src="${blobURL(p.blob)}">` : '<div class="ph"></div>'; }).join('')}</div>`).join('')}</div>` : ''}`;
+    ${dates.length ? `<div class="card"><div class="card-title">Galeria</div>${dates.slice().reverse().map(d => `<div class="row between mt"><b>${fmtDate(d, true)}</b><button class="btn sm ghost" data-deld="${d}">${ICON.trash}</button></div><div class="photo-grid mt">${POSES.map(([k]) => { const p = find(d, k); return p ? `<img src="${blobURL(p.blob, p.id)}">` : '<div class="ph"></div>'; }).join('')}</div>`).join('')}</div>` : ''}`;
 
   const c = body.querySelector('[data-cmp]');
   if (c) {
@@ -225,7 +226,7 @@ async function renderMeasures(body) {
 
 // Streak de semanas cumpridas (4 treinos na semana)
 export async function weekStreak() {
-  const ss = await completedSessions();
+  const ss = (await completedSessions()).filter(countsForProgram);
   const start = parseKey(P.start);
   const per = new Map();
   for (const s of ss) { const wk = Math.floor(daysBetween(start, parseKey(s.date)) / 7); if (wk >= 0) per.set(wk, (per.get(wk) || 0) + 1); }
@@ -239,10 +240,12 @@ export async function weekStreak() {
 
 async function renderCalendar(body) {
   const ss = await completedSessions();
+  const prog = ss.filter(countsForProgram);
   const days = await db.all('days');
   const trained = new Set(ss.map(s => s.date));
   const cardioDays = new Set(days.filter(d => d.cardio && d.cardio.length).map(d => d.id));
-  const { streak, per } = await weekStreak();
+  const { streak, curWk } = await weekStreak();
+  const { weekly } = await weightStats();
   const start = parseKey(P.start);
   const today = dateKey();
   let grid = '<span></span>' + ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map(d => `<span class="center">${d}</span>`).join('');
@@ -254,18 +257,52 @@ async function renderCalendar(body) {
       grid += `<div class="c ${trained.has(k) ? 't1' : cardioDays.has(k) ? 't2' : ''} ${k === today ? 'today' : ''} ${out ? 'out' : ''}" style="animation-delay:${(w * 7 + d) * 8}ms" title="${fmtShort(day)}"></div>`;
     }
   }
-  const total = ss.length;
+  // resumo de cada semana do programa (da mais recente para a primeira)
+  const weeks = [];
+  for (let w = Math.min(curWk, TOTAL_WEEKS - 1); w >= 0; w--) {
+    const w0 = dateKey(addDays(start, w * 7)), w1 = dateKey(addDays(start, w * 7 + 6));
+    const inW = x => x >= w0 && x <= w1;
+    const sw = prog.filter(s => inW(s.date));
+    const dw = days.filter(d => inW(d.id));
+    const avg = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+    const wt = weekly.find(x => x.wk === w), wtPrev = weekly.find(x => x.wk === w - 1);
+    const feel = avg(sw.filter(s => s.feel).map(s => s.feel));
+    weeks.push({
+      w: w + 1, phase: phaseForWeek(w + 1).name, n: sw.length,
+      vol: sw.reduce((a, s) => a + (s.volume || 0), 0),
+      kg: wt ? wt.avg : null, dkg: wt && wtPrev ? wt.avg - wtPrev.avg : null,
+      prot: avg(dw.filter(d => d.protein > 0).map(d => d.protein)),
+      steps: avg(dw.filter(d => d.steps > 0).map(d => d.steps)),
+      cardio: sw.reduce((a, s) => a + (s.cardio ? s.cardio.minutes : 0), 0) + dw.reduce((a, d) => a + (d.cardio || []).reduce((x, c) => x + c.minutes, 0), 0),
+      prs: sw.reduce((a, s) => a + (s.prs ? s.prs.length : 0), 0),
+      feel: feel ? ['😫', '😕', '😐', '🙂', '🔥'][Math.round(feel) - 1] : '',
+    });
+  }
+  const total = prog.length, planned = PLANNED_SESSIONS();
   body.innerHTML = `
     <div class="grid2">
       <div class="stat"><div class="lbl">${ICON.fire} Sequência</div><div class="val num">${streak}<span class="unit">semana(s)</span></div><small>com os 4 treinos</small></div>
-      <div class="stat"><div class="lbl">Treinos feitos</div><div class="val num">${total}<span class="unit">/ 44</span></div><small>${Math.round(total / 44 * 100)}% do programa</small></div>
+      <div class="stat"><div class="lbl">Treinos feitos</div><div class="val num">${total}<span class="unit">/ ${planned}</span></div><small>${Math.round(total / planned * 100)}% do programa</small></div>
     </div>
-    <div class="card"><div class="card-title">Mapa de treinos · 19/10 a 31/12</div><div class="heat">${grid}</div>
+    <div class="card"><div class="card-title">Mapa de treinos · ${fmtShort(P.start)} a ${fmtShort(P.end)}</div><div class="heat">${grid}</div>
       <div class="legend mt"><span><i style="background:var(--accent)"></i>musculação</span><span><i style="background:rgba(56,189,248,.6)"></i>só cardio</span><span><i style="background:var(--bg-2);border:1px solid #fff"></i>hoje</span></div></div>
-    <div class="list">${ss.slice().reverse().slice(0, 20).map(s => `<div class="li tap" data-sess="${s.id}"><div class="li-main"><b>${P.workouts[s.workout].name}</b><small>${fmtDate(s.date, true)} · ${Math.round((s.endedAt - s.startedAt) / 60000)} min · ${fmtNum(s.volume)} kg${s.cardio ? ` · cardio ${s.cardio.minutes} min` : ''}</small></div><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>`).join('') || '<div class="li muted">Nenhum treino ainda.</div>'}</div>`;
+    ${weeks.length ? `<div class="card"><div class="card-title">Semana a semana</div>${weeks.map(x => `
+      <div class="wk-row">
+        <div class="row between"><b>Semana ${x.w} <span class="muted" style="font-weight:600">· ${x.phase}</span></b><span class="tag ${x.n >= 4 ? 'acc' : x.n ? '' : 'danger'}">${x.n}/4 treinos ${x.feel}</span></div>
+        <div class="wk-grid">
+          <span><small>Volume</small><b class="num">${x.vol ? fmtNum(x.vol / 1000, 1) + ' t' : '—'}</b></span>
+          <span><small>Peso médio</small><b class="num">${x.kg ? fmtKg(Math.round(x.kg * 10) / 10) : '—'}${x.dkg != null ? ` <em class="${x.dkg <= 0 ? 'delta-up' : 'delta-down'}">${x.dkg <= 0 ? '−' : '+'}${fmtKg(Math.abs(Math.round(x.dkg * 10) / 10))}</em>` : ''}</b></span>
+          <span><small>Proteína</small><b class="num">${x.prot ? Math.round(x.prot) + ' g' : '—'}</b></span>
+          <span><small>Passos</small><b class="num">${x.steps ? fmtNum(x.steps / 1000, 1) + ' mil' : '—'}</b></span>
+          <span><small>Esteira</small><b class="num">${x.cardio ? x.cardio + ' min' : '—'}</b></span>
+          <span><small>Recordes</small><b class="num">${x.prs || '—'}</b></span>
+        </div>
+      </div>`).join('')}</div>` : ''}
+    <div class="card-title mt">Histórico de treinos</div>
+    <div class="list">${ss.slice().reverse().slice(0, 30).map(s => `<div class="li tap" data-sess="${s.id}"><div class="li-main"><b>${P.workouts[s.workout] ? P.workouts[s.workout].name : s.workout}${s.test ? ' <span class="tag">teste</span>' : ''}</b><small>${fmtDate(s.date, true)} · ${Math.round((s.endedAt - s.startedAt) / 60000)} min · ${fmtNum(s.volume)} kg${s.cardio ? ` · cardio ${s.cardio.minutes} min` : ''}</small></div><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>`).join('') || '<div class="li muted">Nenhum treino ainda.</div>'}</div>`;
   body.onclick = async e => {
     const s = e.target.closest('[data-sess]'); if (!s) return;
     const { renderSessionDetail } = await import('./workouts.js');
-    nav.push(el => renderSessionDetail(el, s.dataset.sess));
+    nav.push(el => renderSessionDetail(el, s.dataset.sess), { fullscreen: true });
   };
 }

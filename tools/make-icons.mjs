@@ -57,7 +57,42 @@ function png(w, h, raw) {
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
 }
 
+// Tela de abertura do iOS: fundo escuro liso + logo (quadrado limão com o haltere escuro)
+function renderSplash(W, H) {
+  const raw = Buffer.alloc((W * 4 + 1) * H);
+  const L = Math.round(Math.min(W, H) * 0.24), lx = (W - L) / 2, ly = H * 0.44 - L / 2, lr = L * 0.23;
+  for (let y = 0; y < H; y++) {
+    raw[y * (W * 4 + 1)] = 0;
+    const inRow = y >= ly - 2 && y <= ly + L + 2;
+    for (let x = 0; x < W; x++) {
+      let c = BG;
+      if (inRow && x >= lx - 2 && x <= lx + L + 2) {
+        const px = x + 0.5, py = y + 0.5;
+        const box = sd(px, py, [lx + L / 2, ly + L / 2, L / 2, L / 2, lr]);
+        const a = Math.min(1, Math.max(0, 0.5 - box));
+        if (a > 0) {
+          const u = (px - lx) / L, v = (py - ly) / L;
+          const d = Math.min(...shapes.map(sh => sd(u, v, sh))) * L;
+          const b = Math.min(1, Math.max(0, 0.5 - d));
+          const logo = ACC.map((k, i) => k + (BG[i] - k) * b);
+          c = BG.map((k, i) => Math.round(k + (logo[i] - k) * a));
+        }
+      }
+      const o = y * (W * 4 + 1) + 1 + x * 4;
+      raw[o] = c[0]; raw[o + 1] = c[1]; raw[o + 2] = c[2]; raw[o + 3] = 255;
+    }
+  }
+  return png(W, H, raw);
+}
+// [largura CSS, altura CSS, densidade] dos iPhones (portrait)
+export const SPLASH = [
+  [440, 956, 3], [402, 874, 3], [420, 912, 3], [430, 932, 3], [393, 852, 3],
+  [428, 926, 3], [390, 844, 3], [375, 812, 3], [414, 896, 2], [375, 667, 2],
+];
+
 const out = new URL('../icons/', import.meta.url);
 for (const s of [180, 192, 512]) writeFileSync(new URL(`icon-${s}.png`, out), render(s));
 writeFileSync(new URL('icon.svg', out), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#07080a"/>${shapes.map(([cx, cy, hw, hh, r]) => `<rect x="${(cx - hw) * 100}" y="${(cy - hh) * 100}" width="${hw * 200}" height="${hh * 200}" rx="${r * 100}" fill="#c6ff3d"/>`).join('')}</svg>`);
-console.log('ícones gerados');
+for (const [w, h, r] of SPLASH) writeFileSync(new URL(`splash-${w * r}x${h * r}.png`, out), renderSplash(w * r, h * r));
+console.log('ícones e telas de abertura gerados');
+console.log(SPLASH.map(([w, h, r]) => `  <link rel="apple-touch-startup-image" media="(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${r}) and (orientation: portrait)" href="icons/splash-${w * r}x${h * r}.png">`).join('\n'));
