@@ -1,7 +1,7 @@
 // Treinos: os 4 treinos, periodização, biblioteca de exercícios e detalhe de sessões passadas.
 import { db, kv } from '../db.js';
 import { P, nextWorkoutKey, groupsOf, setsFor, rirFor, effWeek, phaseForWeek, cardioForWeek, weekOf, completedSessions, fmtDate, TOTAL_WEEKS, parseKey, addDays, fmtShort } from '../program.js';
-import { historyFor, histKey, recordsFor, fmtKg, variantDef } from '../progression.js';
+import { historyFor, histKey, recordsFor, fmtKg, variantDef, computePRs } from '../progression.js';
 import { figureSVG, animateFigures } from '../figures.js';
 import { nav, header, esc, ICON, fmtNum, confirmSheet, toast } from '../ui.js';
 import { startSession } from './session.js';
@@ -147,6 +147,7 @@ export async function renderSessionDetail(el, id) {
       let volume = 0, sets = 0;
       for (const [exId, en] of Object.entries(s.entries)) { if (!P.ex[exId]) continue; for (const x of en.sets) if (x.done) { volume += (x.kg || 0) * x.reps; sets++; } }
       s.volume = volume; s.setsDone = sets;
+      s.prs = computePRs(s, (await completedSessions()).filter(x => x.startedAt < s.startedAt));
       await db.put('sessions', s); editing = null; toast('Treino corrigido ✓', 'ok'); return nav.refresh();
     }
     if (e.target.closest('[data-del]') && await confirmSheet('Apagar este treino?', 'O histórico e a sequência serão recalculados.', 'Apagar', true)) {

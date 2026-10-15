@@ -1,6 +1,6 @@
 // Conquistas: calculadas a partir dos seus dados (nada a configurar). As novas aparecem no resumo do treino.
 import { db, kv } from './db.js';
-import { P, completedSessions, parseKey, daysBetween } from './program.js';
+import { P, programSessions, parseKey, daysBetween } from './program.js';
 import { historyFor, sessionStats } from './progression.js';
 
 const DEFS = [
@@ -27,7 +27,8 @@ const DEFS = [
 ];
 
 async function context() {
-  const ss = (await completedSessions()).filter(s => !s.test);
+  // só treinos do programa (a partir do início, sem os de teste)
+  const ss = await programSessions();
   const weights = (await db.all('weights')).sort((a, b) => a.id < b.id ? -1 : 1);
   const days = await db.all('days');
   const photos = await db.all('photos');
@@ -74,8 +75,11 @@ export async function achievements() {
 // Retorna as conquistas desbloqueadas desde a última checagem (e marca como vistas)
 export async function newAchievements() {
   const list = await achievements();
-  const seen = new Set(await kv.get('achSeen', []));
+  const unlocked = new Set(list.filter(a => a.unlocked).map(a => a.id));
+  const before = await kv.get('achSeen', []);
+  // uma conquista que deixou de valer (ex.: treino apagado) volta a ser anunciada quando acontecer de novo
+  const seen = new Set(before.filter(id => unlocked.has(id)));
   const fresh = list.filter(a => a.unlocked && !seen.has(a.id));
-  if (fresh.length) await kv.set('achSeen', [...seen, ...fresh.map(a => a.id)]);
+  if (fresh.length || seen.size !== before.length) await kv.set('achSeen', [...seen, ...fresh.map(a => a.id)]);
   return fresh;
 }

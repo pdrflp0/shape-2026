@@ -1,7 +1,7 @@
 // Treino ativo: lista de exercícios, tela do exercício, registro de séries, bi-sets, descanso e resumo.
 import { db, kv, uid } from '../db.js';
 import { P, dateKey, groupsOf, rirFor, restFor, activeWarnings, phaseOf, effWeek, completedSessions, weekLabel, programSessions, PLANNED_SESSIONS, fmtDate } from '../program.js';
-import { suggest, histKey, variantDef, fmtKg, lastLine, todayLine, historyFor, recordsFor, sessionStats, getPrimeLoads, platesText, warmupSets, DEFAULT_PLATES } from '../progression.js';
+import { suggest, histKey, variantDef, fmtKg, lastLine, todayLine, historyFor, getPrimeLoads, platesText, warmupSets, computePRs, DEFAULT_PLATES } from '../progression.js';
 import { Countdown, beep, flash, keepAwake, unlockAudio, mmss, hhmmss, speak } from '../timer.js';
 import { figureSVG, animateFigures } from '../figures.js';
 import { nav, header, sheet, toast, confirmSheet, confetti, esc, ICON, compressImage, pickImage, blobURL, fmtNum, haptic, $$ } from '../ui.js';
@@ -705,7 +705,7 @@ export async function finishFlow() {
   const prevSessions = await completedSessions();
   // se esqueceu o treino aberto, a duração vai até pouco depois da última série
   const lastAt = lastSetAt(s);
-  s.endedAt = Date.now() - lastAt > 30 * 60000 ? lastAt + 3 * 60000 : Date.now();
+  s.endedAt = lastAt && Date.now() - lastAt > 30 * 60000 ? lastAt + 3 * 60000 : Date.now();
   s.rest = null;
   if (s.date < P.start) s.test = true;
   // só séries feitas entram no histórico
@@ -715,20 +715,7 @@ export async function finishFlow() {
     for (const x of en.sets) if (x.done) { volume += (x.kg || 0) * x.reps; sets++; }
   }
   s.volume = volume; s.setsDone = sets;
-  // recordes
-  s.prs = [];
-  for (const [exId, en] of Object.entries(s.entries)) {
-    const ex = P.ex[exId]; if (!ex || ex.unit === 's') continue;
-    const k = histKey(exId, en.variant);
-    const prior = historyFor(prevSessions, k);
-    const doneSets = en.sets.filter(x => x.done && x.reps > 0);
-    if (!prior.length || !doneSets.length) continue;
-    const rec = recordsFor(prior);
-    const st = sessionStats({ sets: doneSets });
-    const def = variantDef(ex, en.variant);
-    if (st.maxKg > (rec.bestKg?.kg || 0)) s.prs.push({ exId, name: def.name, kind: 'Carga', value: `${fmtKg(st.maxKg)} kg` });
-    else if (st.e1 > (rec.bestE?.e || 0) + 0.01) s.prs.push({ exId, name: def.name, kind: '1RM est.', value: `${fmtKg(Math.round(st.e1 * 10) / 10)} kg` });
-  }
+  s.prs = computePRs(s, prevSessions);
   await db.put('sessions', s);
   await kv.del('active');
   s.newAch = (await newAchievements()).map(a => a.id);

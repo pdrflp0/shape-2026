@@ -86,10 +86,12 @@ export async function renderDiet(el) {
   for (let i = 6; i >= 0; i--) {
     const k = dateKey(addDays(parseKey(today), -i));
     const dd = await db.get('days', k);
-    week.push({ k, y: dd ? dd.protein : 0, label: 'DSTQQSS'[parseKey(k).getDay()] });
+    week.push({ k, y: dd ? dd.protein : 0, label: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][parseKey(k).getDay()] });
   }
   const hit = week.filter(x => x.y >= t.protein).length;
-  const avgP = Math.round(week.reduce((s, x) => s + x.y, 0) / 7);
+  // média só dos dias em que houve lançamento (dia sem registro não é dia com 0 g)
+  const logged = week.filter(x => x.y > 0);
+  const avgP = logged.length ? Math.round(logged.reduce((s, x) => s + x.y, 0) / logged.length) : 0;
 
   el.innerHTML = `
     <div class="top-hello"><div class="eyebrow">Dieta</div>
@@ -113,8 +115,9 @@ export async function renderDiet(el) {
       </div>
 
       <div class="card">
-        <div class="card-title">Últimos 7 dias <span class="num">${hit}/7 metas · média ${avgP} g</span></div>
+        <div class="card-title">Últimos 7 dias <span class="num">${hit}/7 metas${avgP ? ` · média ${avgP} g` : ''}</span></div>
         ${barChart(week.map(x => ({ y: x.y, label: x.label })), { goal: t.protein, empty: 'Sem lançamentos ainda' })}
+        <div class="legend"><span><i style="background:var(--accent)"></i>bateu a meta</span><span><i style="background:var(--accent);opacity:.35"></i>abaixo</span><span><i style="background:transparent;border-top:2px dashed var(--accent-2);border-radius:0;height:0"></i>meta ${t.protein} g</span></div>
       </div>
 
       <div class="card">

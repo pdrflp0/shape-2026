@@ -281,7 +281,7 @@ async function renderCalendar(body) {
   const total = prog.length, planned = PLANNED_SESSIONS();
   body.innerHTML = `
     <div class="grid2">
-      <div class="stat"><div class="lbl">${ICON.fire} Sequência</div><div class="val num">${streak}<span class="unit">semana(s)</span></div><small>com os 4 treinos</small></div>
+      <div class="stat"><div class="lbl">${ICON.fire} Sequência</div><div class="val num">${streak}<span class="unit">${streak === 1 ? "semana" : "semanas"}</span></div><small>com os 4 treinos</small></div>
       <div class="stat"><div class="lbl">Treinos feitos</div><div class="val num">${total}<span class="unit">/ ${planned}</span></div><small>${Math.round(total / planned * 100)}% do programa</small></div>
     </div>
     <div class="card"><div class="card-title">Mapa de treinos · ${fmtShort(P.start)} a ${fmtShort(P.end)}</div><div class="heat">${grid}</div>

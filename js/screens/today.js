@@ -81,7 +81,7 @@ export async function renderToday(el) {
 
   el.innerHTML = `
     <div class="top-hello">
-      <div class="row between"><div class="eyebrow">${fmtDate(now, true)}</div>${streak ? `<span class="tag org">${mini(ICON.fire)} ${streak} sem. seguidas</span>` : ''}</div>
+      <div class="row between"><div class="eyebrow">${fmtDate(now, true)}</div>${streak ? `<span class="tag org">${mini(ICON.fire)} ${streak === 1 ? '1 semana perfeita' : `${streak} semanas seguidas`}</span>` : ''}</div>
       <h1>${hello}, ${esc(first)}</h1>
       <div class="phase-pill"><span class="dotp"></span>${wl.title} · ${wl.sub}</div>
       <p class="hello-line">${line}</p>

@@ -187,3 +187,20 @@ export function warmupSets(work, def, bar = 20) {
   }
   return out;
 }
+
+// Recordes de uma sessão em relação às sessões anteriores (usado ao finalizar e ao corrigir um treino)
+export function computePRs(session, priorSessions) {
+  const out = [];
+  for (const [exId, en] of Object.entries(session.entries || {})) {
+    const ex = P.ex[exId]; if (!ex || ex.unit === 's') continue;
+    const prior = historyFor(priorSessions, histKey(exId, en.variant));
+    const doneSets = en.sets.filter(x => x.done && x.reps > 0);
+    if (!prior.length || !doneSets.length) continue;
+    const rec = recordsFor(prior);
+    const st = sessionStats({ sets: doneSets });
+    const def = variantDef(ex, en.variant);
+    if (st.maxKg > (rec.bestKg?.kg || 0)) out.push({ exId, name: def.name, kind: 'Carga', value: `${fmtKg(st.maxKg)} kg` });
+    else if (st.e1 > (rec.bestE?.e || 0) + 0.01) out.push({ exId, name: def.name, kind: '1RM est.', value: `${fmtKg(Math.round(st.e1 * 10) / 10)} kg` });
+  }
+  return out;
+}

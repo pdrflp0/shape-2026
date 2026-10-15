@@ -243,6 +243,8 @@ onAfterRender(el => {
       n.textContent = fmtNum(to * e, d);
       if (k < 1) requestAnimationFrame(f);
     })(t0);
+    // se o iOS pausar a animação (app em segundo plano), o número final aparece mesmo assim
+    setTimeout(() => { n.textContent = fmtNum(to, d); }, dur + 150);
   });
 });
 

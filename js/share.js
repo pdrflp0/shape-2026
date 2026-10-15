@@ -37,19 +37,28 @@ export async function shareSessionCard(s, name) {
     ['Recordes', String((s.prs || []).length)],
   ];
   stats.forEach(([l, v], i) => {
-    const x = 80 + (i % 2) * 470, y = 450 + Math.floor(i / 2) * 210;
-    g.fillStyle = '#15171b'; rr(g, x, y, 450, 180, 36); g.fill();
-    g.fillStyle = '#8b9099'; g.font = font(600, 32); g.fillText(l, x + 36, y + 62);
-    g.fillStyle = '#f4f5f7'; g.font = font(800, 64); g.fillText(v, x + 36, y + 140);
+    const x = 80 + (i % 2) * 470, y = 430 + Math.floor(i / 2) * 180;
+    g.fillStyle = '#15171b'; rr(g, x, y, 450, 160, 36); g.fill();
+    g.fillStyle = '#8b9099'; g.font = font(600, 32); g.fillText(l, x + 36, y + 56);
+    g.fillStyle = '#f4f5f7'; g.font = font(800, 62); g.fillText(v, x + 36, y + 124);
   });
 
-  let y = 930;
-  const prs = (s.prs || []).slice(0, 4);
-  if (prs.length) {
-    g.fillStyle = acc; g.font = font(800, 34); g.fillText('RECORDES', 80, y); y += 60;
-    for (const p of prs) { g.fillStyle = '#f4f5f7'; g.font = font(650, 38); g.fillText(`🏆 ${p.name} — ${p.value}`, 80, y); y += 56; }
-  } else if (s.cardio && s.cardio.done) {
-    g.fillStyle = '#f4f5f7'; g.font = font(650, 40); g.fillText(`🚶 + ${s.cardio.minutes} min de esteira`, 80, y);
+  // texto numa linha só: corta com "…" se passar da largura
+  const line = (txt, x, y, maxW) => {
+    let t = txt;
+    while (g.measureText(t).width > maxW && t.length > 4) t = t.slice(0, -2);
+    g.fillText(t === txt ? t : t.trimEnd() + '…', x, y);
+  };
+  let y = 830;
+  const all = s.prs || [];
+  if (all.length) {
+    g.fillStyle = acc; g.font = font(800, 34); g.fillText('RECORDES', 80, y); y += 62;
+    g.fillStyle = '#f4f5f7'; g.font = font(650, 38);
+    for (const p of all.slice(0, 4)) { line(`🏆 ${p.name} — ${p.value}`, 80, y, W - 160); y += 56; }
+    if (all.length > 4) { g.fillStyle = '#8b9099'; g.fillText(`+${all.length - 4} recorde${all.length - 4 > 1 ? 's' : ''}`, 80, y); y += 56; }
+  }
+  if (s.cardio && s.cardio.done && y < H - 230) {
+    g.fillStyle = '#f4f5f7'; g.font = font(650, 38); g.fillText(`🚶 + ${s.cardio.minutes} min de esteira`, 80, y + (all.length ? 14 : 0));
   }
 
   g.fillStyle = acc; rr(g, 80, H - 170, W - 160, 96, 48); g.fill();

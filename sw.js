@@ -1,7 +1,7 @@
 // Service worker: guarda todos os arquivos para o app funcionar 100% offline.
 // Estratégia: responde do cache na hora e atualiza em segundo plano (stale-while-revalidate).
 // Ao publicar uma versão nova, aumente VERSION: o app baixa tudo de uma vez e oferece "Atualizar".
-const VERSION = 'shape2026-v2';
+const VERSION = 'shape2026-v3';
 const ASSETS = [
   './', 'index.html', 'manifest.json', 'program.json', 'css/app.css',
   'js/app.js', 'js/db.js', 'js/program.js', 'js/progression.js', 'js/timer.js', 'js/figures.js', 'js/charts.js', 'js/ui.js', 'js/day.js',

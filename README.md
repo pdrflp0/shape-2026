@@ -17,11 +17,22 @@ Tudo do programa está em **`program.json`**. Você não precisa mexer em mais n
 | Avisos por semana | `warnings: [{ weeks: [1,2], text, bodyweight: true }]` |
 | Passos, erros, porquê | `steps`, `mistakes`, `why` |
 | Ilustração | `anim` (veja os nomes em `js/figures.js` → `ANIMS`) |
-| Fases, RIR, cardio, descansos padrão | `phases`, `cardio`, `rest` |
+| Fases, RIR, cardio, descansos padrão | `phases` (com o texto `brief` de cada fase), `cardio`, `rest` |
+| Peso da barra de um exercício | `bar` (ex.: rosca direta com barra W = `10`); sem isso usa a barra do Perfil |
 
 O histórico fica ligado ao `id` do exercício. Se você trocar o `id`, o histórico antigo deixa de aparecer para ele.
 
-Depois de editar e publicar, o app baixa a versão nova sozinho e ela aparece **na próxima vez que você abrir o app**. Para forçar a atualização, aumente `VERSION` em `sw.js`.
+Ao publicar uma mudança, **aumente `VERSION` em `sw.js`** (ex.: `shape2026-v3` → `v4`). O app baixa a versão nova inteira e mostra **"Nova versão do app pronta → Atualizar"**. Um treino em andamento e o descanso continuam depois de atualizar.
+
+## O que dá para personalizar no app (Perfil)
+
+- Nome, "seu porquê" (aparece na tela Hoje e no fim de cada treino) e cor do app.
+- Metas: peso inicial, faixa de peso alvo, déficit calórico, g de proteína por kg, água e dias de pesagem.
+- Treino: descansos padrão, som, voz, vibração, peso da barra e anilhas da sua academia (para o "por lado").
+- Cargas do "prime" (base da 1ª sessão).
+- Na Dieta: botões rápidos de proteína e refeições favoritas.
+
+Os treinos feitos **antes de 19/10** entram no histórico de cargas, mas não contam na sequência, nas semanas nem nas conquistas.
 
 ## Instalar no iPhone
 
@@ -47,7 +58,7 @@ O backup inclui histórico, fotos, dieta, medidas e configurações.
 python3 -m http.server 8642
 ```
 
-Abra `http://localhost:8642`. Para gerar os ícones de novo: `node tools/make-icons.mjs`.
+Abra `http://localhost:8642`. Para gerar os ícones e as telas de abertura do iOS de novo: `node tools/make-icons.mjs`.
 
 ## Estrutura
 
@@ -55,7 +66,8 @@ Abra `http://localhost:8642`. Para gerar os ícones de novo: `node tools/make-ic
 index.html  manifest.json  sw.js  program.json
 css/app.css
 js/app.js (abas e navegação)  db.js (IndexedDB e backup)  program.js (semana, fase, sequência)
-js/progression.js (progressão dupla, Epley)  timer.js (descanso, wake lock, beep)
-js/figures.js (ilustrações SVG)  charts.js  ui.js  day.js
+js/progression.js (progressão dupla, RIR, Epley, recordes, anilhas, aquecimento)
+js/timer.js (descanso, wake lock, beep, voz)  achievements.js (conquistas)  share.js (cartão do treino)
+js/figures.js (ilustrações SVG)  charts.js  ui.js (navegação, sheets, tema, vibração)  day.js
 js/screens/ today · workouts · session · cardio · progress · diet · profile
 ```

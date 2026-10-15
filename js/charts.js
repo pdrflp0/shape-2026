@@ -71,7 +71,7 @@ export function barChart(points, opts = {}) {
     g += `<rect class="barr grow${miss}" style="animation-delay:${i * 40}ms;transform-origin:${x}px ${H - PB}px" x="${x}" y="${H - PB - h}" width="${w}" height="${h}" rx="3"/>`;
     if (points.length <= 12 || i % Math.ceil(points.length / 8) === 0) g += `<text class="axis" x="${x + w / 2}" y="${H - 6}" text-anchor="middle">${p.label}</text>`;
   });
-  if (opts.goal) { const y = H - PB - opts.goal / max * (H - PT - PB); g += `<line class="goal" x1="${PL}" x2="${W - PR}" y1="${y}" y2="${y}"/><text class="axis goal-t" x="${W - PR}" y="${y - 4}" text-anchor="end">meta ${Math.round(opts.goal)}</text>`; }
+  if (opts.goal) { const y = H - PB - opts.goal / max * (H - PT - PB); g += `<line class="goal" x1="${PL}" x2="${W - PR}" y1="${y}" y2="${y}"/>`; }
   return `<svg class="chart" viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
 
