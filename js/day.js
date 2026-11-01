@@ -1,4 +1,3 @@
-// Registro diário (dieta, água, passos, checklist, cardio avulso).
 import { db } from './db.js';
 import { dateKey } from './program.js';
 

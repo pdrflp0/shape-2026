@@ -1,4 +1,3 @@
-// IndexedDB: armazenamento local de tudo (histórico, fotos, dieta, configurações).
 const DB_NAME = 'shape2026';
 const DB_VERSION = 1;
 export const STORES = ['sessions', 'weights', 'days', 'photos', 'media', 'measures', 'kv'];
@@ -46,7 +45,6 @@ export const db = {
   clear(store) { return tx(store, 'readwrite', s => { s.clear(); }); },
 };
 
-// Chave/valor (configurações, perfil, sessão ativa...)
 export const kv = {
   async get(key, fallback = null) {
     const r = await db.get('kv', key);
@@ -58,7 +56,6 @@ export const kv = {
 
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-// ---------- Backup ----------
 const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
 const dataURLToBlob = async u => (await fetch(u)).blob();
 

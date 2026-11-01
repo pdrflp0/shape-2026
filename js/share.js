@@ -1,4 +1,3 @@
-// Cartão do treino (imagem 1080×1350) para compartilhar pelo menu do iOS.
 import { P, fmtDate, TOTAL_WEEKS } from './program.js';
 import { hhmmss } from './timer.js';
 import { fmtNum, toast } from './ui.js';
@@ -43,7 +42,6 @@ export async function shareSessionCard(s, name) {
     g.fillStyle = '#f4f5f7'; g.font = font(800, 62); g.fillText(v, x + 36, y + 124);
   });
 
-  // texto numa linha só: corta com "…" se passar da largura
   const line = (txt, x, y, maxW) => {
     let t = txt;
     while (g.measureText(t).width > maxW && t.length > 4) t = t.slice(0, -2);

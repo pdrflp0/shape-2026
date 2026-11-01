@@ -1,9 +1,6 @@
-// Timer de descanso (baseado em Date.now()), Wake Lock, beep (Web Audio) e flash.
 import { kv } from './db.js';
 
-// ---------- Áudio ----------
 let ctx;
-// Safari 17+: "transient" = som curto que abaixa a música (Spotify etc.) por um instante em vez de pausá-la
 function audioSessionTransient() {
   try { if (navigator.audioSession && navigator.audioSession.type !== 'transient') navigator.audioSession.type = 'transient'; } catch (e) {}
 }
@@ -12,11 +9,9 @@ export function unlockAudio() {
   try {
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
-    // buffer silencioso destrava o áudio no iOS
     const b = ctx.createBuffer(1, 1, 22050), s = ctx.createBufferSource();
     s.buffer = b; s.connect(ctx.destination); s.start(0);
   } catch (e) {}
-  // a voz também precisa ser "destravada" por um toque no iOS
   try { if (!voiceUnlocked && 'speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); voiceUnlocked = true; } } catch (e) {}
 }
 let voiceUnlocked = false;
@@ -39,7 +34,6 @@ export async function beep({ freq = 880, dur = 0.18, count = 1, gap = 0.12 } = {
   } catch (e) {}
 }
 
-// Voz (opcional, em Perfil): anuncia o fim do descanso e a próxima série
 export async function speak(text) {
   const st = Object.assign({ voice: false, sound: true }, await kv.get('settings', {}));
   if (!st.voice || !st.sound || !('speechSynthesis' in window)) return;
@@ -60,7 +54,6 @@ export function flash(kind = 'done') {
   el.className = kind === 'warn' ? 'warn' : 'on';
 }
 
-// ---------- Wake Lock ----------
 let lock = null, wantLock = false;
 export async function keepAwake(on) {
   wantLock = on;
@@ -77,8 +70,6 @@ document.addEventListener('visibilitychange', () => {
   try { if (ctx && ctx.state !== 'running') ctx.resume(); } catch (e) {}
 });
 
-// ---------- Contagem regressiva genérica ----------
-// O tempo restante é sempre endAt - Date.now(): continua correto se a tela bloquear ou o app for para o fundo.
 export class Countdown {
   constructor({ endAt, duration, onTick, onWarn, onDone, warnAt = 10 }) {
     this.duration = duration; this.endAt = endAt || Date.now() + duration * 1000;
@@ -87,7 +78,7 @@ export class Countdown {
     this.paused = null;
     this.loop = this.loop.bind(this);
     this.raf = requestAnimationFrame(this.loop);
-    this.iv = setInterval(this.loop, 500); // rAF pausa em segundo plano
+    this.iv = setInterval(this.loop, 500);
   }
   remaining() { return Math.max(0, (this.paused != null ? this.paused : this.endAt - Date.now()) / 1000); }
   add(sec) {
@@ -110,5 +101,4 @@ export class Countdown {
 }
 
 export const mmss = s => { s = Math.ceil(s); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-// nunca negativo, mesmo se o relógio do aparelho mudar
 export const hhmmss = ms => { const s = Math.max(0, Math.floor(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0'); };

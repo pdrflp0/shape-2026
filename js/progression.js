@@ -1,4 +1,3 @@
-// Progressão dupla, 1RM estimado (Epley) e recordes.
 import { kv } from './db.js';
 import { P, phaseOf, setsFor, activeWarnings } from './program.js';
 
@@ -13,7 +12,6 @@ export function roundLoad(x, load) {
 }
 export const fmtKg = n => (n == null || n === '' || isNaN(n)) ? '–' : (Math.round(n * 10) / 10).toString().replace('.', ',');
 
-// Definição efetiva (principal ou alternativa)
 export function variantDef(ex, variant) {
   if (variant !== 'alt') return { name: ex.name, equip: ex.equip, load: ex.load, inc: ex.inc, anim: ex.anim };
   return { name: ex.alt.name, equip: ex.alt.equip, load: ex.alt.load || ex.load, inc: ex.alt.inc ?? ex.inc, anim: ex.alt.anim || ex.anim };
@@ -29,7 +27,6 @@ export function incText(def) {
   }
 }
 
-// Histórico de um exercício (só sessões concluídas, só séries feitas)
 export function historyFor(sessions, key) {
   const out = [];
   for (const s of sessions) {
@@ -45,7 +42,6 @@ export function historyFor(sessions, key) {
 
 export async function getPrimeLoads() { return kv.get('primeLoads', {}); }
 
-// Sugestão do dia
 export function suggest(ex, variant, sessions, primeLoads, date = new Date(), excludeSessionId) {
   const def = variantDef(ex, variant);
   const key = histKey(ex.id, variant);
@@ -58,7 +54,6 @@ export function suggest(ex, variant, sessions, primeLoads, date = new Date(), ex
   const fill = v => Array.from({ length: n }, (_, i) => typeof v === 'function' ? v(i) : v);
 
   let hist = historyFor(sessions.filter(s => s.id !== excludeSessionId), key);
-  // fora do deload, a progressão ignora as sessões de deload (cargas reduzidas)
   if (ph.id !== 'deload') {
     const nd = hist.filter(h => h.phase !== 'deload');
     if (nd.length) hist = nd;
@@ -96,7 +91,6 @@ export function suggest(ex, variant, sessions, primeLoads, date = new Date(), ex
     res.reps = fill(i => Math.min(hi, Math.max(lo, (last.sets[i] || last.sets[last.sets.length - 1]).reps + 1)));
     res.msg = 'Só peso corporal nesta fase';
   } else if (allTop) {
-    // RIR registrado: se sobrou muita reserva (≥3 em todas, fora da readaptação/deload), sobe 2 degraus
     const rirs = last.sets.map(x => x.rir).filter(x => x != null);
     const easy = ph.sets === 'full' && rirs.length === last.sets.length && rirs.every(x => x >= 3);
     res.kg = lastKg + def.inc * (easy ? 2 : 1); res.action = 'up'; res.reps = fill(lo);
@@ -132,7 +126,6 @@ export function todayLine(s) {
   return `${kg}, tente ${s.reps.join(', ')}`;
 }
 
-// Recordes (por chave de histórico)
 export function recordsFor(hist) {
   let bestKg = null, bestE = null, bestVol = null;
   for (const h of hist) {
@@ -154,7 +147,6 @@ export function sessionStats(h) {
   return { maxKg, e1, vol };
 }
 
-// ---------- Anilhas por lado ----------
 export const DEFAULT_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
 export function platesPerSide(total, bar = 20, plates = DEFAULT_PLATES) {
   let side = (total - bar) / 2;
@@ -168,11 +160,10 @@ export function platesPerSide(total, bar = 20, plates = DEFAULT_PLATES) {
 export function platesText(total, bar, plates) {
   const r = platesPerSide(total, bar, plates);
   if (!r) return total > 0 && total <= bar ? `só a barra (${fmtKg(bar)})` : '';
-  const f = n => String(n).replace('.', ','); // anilhas precisam de 2 casas (1,25)
+  const f = n => String(n).replace('.', ',');
   return `por lado: ${r.plates.length ? r.plates.map(f).join(' + ') : '—'}${r.rest > 0 ? ` · não fecha (faltam ${f(r.rest)})` : ''}`;
 }
 
-// ---------- Aquecimento sugerido (compostos) ----------
 export function warmupSets(work, def, bar = 20) {
   if (!(work > 0)) return [];
   const steps = def.load === 'barbell'
@@ -188,7 +179,6 @@ export function warmupSets(work, def, bar = 20) {
   return out;
 }
 
-// Recordes de uma sessão em relação às sessões anteriores (usado ao finalizar e ao corrigir um treino)
 export function computePRs(session, priorSessions) {
   const out = [];
   for (const [exId, en] of Object.entries(session.entries || {})) {

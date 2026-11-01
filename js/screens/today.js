@@ -1,4 +1,3 @@
-// Tela "Hoje": fase atual, próximo treino pendente, semana, lembretes, resumo do dia, peso e contagem regressiva.
 import { kv } from '../db.js';
 import { P, weekLabel, nextWorkoutKey, plannedFor, completedSessions, programSessions, countsForProgram, dateKey, parseKey, daysBetween, addDays, effWeek, weekOf, phaseOf, cardioForWeek, groupsOf, setsFor, fmtDate, PLANNED_SESSIONS, TOTAL_WEEKS } from '../program.js';
 import { nav, esc, ICON, fmtNum, sheet, toast, haptic } from '../ui.js';
@@ -21,7 +20,6 @@ const LINES = {
   rest: 'Dia de descanso: sono, proteína e passos também são treino hoje.',
 };
 
-// Treinos desta semana do programa + os próximos da sequência para completar 4
 async function weekStrip(now, nextKey) {
   const start = parseKey(P.start);
   const wk = Math.max(0, Math.floor(daysBetween(start, now) / 7));
@@ -161,11 +159,9 @@ export async function renderToday(el) {
     if (b.dataset.why != null) return document.querySelector('.tab[data-tab="profile"]').click();
   };
 
-  // conquistas desbloqueadas fora do treino (ex.: peso, fotos, proteína)
   newAchievements().then(list => list.forEach((a, i) => setTimeout(() => { haptic('heavy'); toast(`${a.icon} Conquista: ${a.title}`, 'ok'); }, 600 + i * 2400)));
 }
 
-// Passos do dia, com atalho para colar o número copiado do app Saúde
 export function stepsSheet(onDone) {
   getDay().then(day => {
     const sh = sheet(`<h3>Passos de hoje</h3>

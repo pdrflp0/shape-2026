@@ -1,12 +1,7 @@
-// Ilustrações SVG animadas próprias: um boneco estilizado por exercício.
-// Cada animação tem duas poses (A = início, B = fim). O app interpola entre elas em loop.
-// Coordenadas num viewBox 200×160, chão em y=150.
-
 const P = (o) => o;
 const STAND = { head: [100, 24], sh: [100, 42], el: [102, 66], ha: [104, 90], hip: [100, 88], kn: [102, 117], an: [100, 146], toe: [112, 148] };
 const S = (o) => Object.assign({}, STAND, o);
 
-// ---------- Cenários (estáticos) ----------
 const r = (x, y, w, h, rx = 3, c = 'eq') => `<rect class="${c}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"/>`;
 const l = (x1, y1, x2, y2, c = 'eqs') => `<line class="${c}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
 const floor = l(10, 150, 190, 150, 'floor');
@@ -14,7 +9,6 @@ const bench = (x1, x2, y) => r(x1, y, x2 - x1, 6) + l(x1 + 8, y + 6, x1 + 8, 150
 const column = (x, y1 = 6) => r(x - 3, y1, 6, 150 - y1, 2, 'eq2');
 const pulley = (x, y) => `<circle class="eqs" cx="${x}" cy="${y}" r="4"/>`;
 
-// ---------- Props (dependem da pose) ----------
 const plate = (p, rr = 13) => `<circle class="wt" cx="${p[0]}" cy="${p[1]}" r="${rr}"/><circle class="wt2" cx="${p[0]}" cy="${p[1]}" r="${rr * 0.35}"/>`;
 const dumb = (p) => `<rect class="wt" x="${p[0] - 9}" y="${p[1] - 4}" width="18" height="8" rx="3"/><rect class="wt" x="${p[0] - 11}" y="${p[1] - 7}" width="6" height="14" rx="2"/><rect class="wt" x="${p[0] + 5}" y="${p[1] - 7}" width="6" height="14" rx="2"/>`;
 const cable = (from, p) => `<line class="cable" x1="${from[0]}" y1="${from[1]}" x2="${p[0]}" y2="${p[1]}"/>`;
@@ -197,7 +191,6 @@ export const ANIMS = {
   },
 };
 
-// ---------- Desenho ----------
 function lerpPose(a, b, k) {
   const o = {};
   for (const key in a) {
@@ -216,12 +209,9 @@ function body(def, p) {
     if (!p.sh2) p.sh2 = mir(p.sh, cx);
   }
   let s = '';
-  // membros de trás (mais apagados)
-  // vista frontal (espelhada): os dois lados com a mesma cor; vista lateral: lado de trás apagado
   const back = def.mirror ? 'limb' : 'limb back';
   if (p.kn2) s += seg([p.hip2 || p.hip, p.kn2, p.an2, p.toe2 || p.an2], back);
   if (p.el2) s += seg([p.sh2 || p.sh, p.el2, p.ha2], back);
-  // tronco
   s += seg([p.neck, p.pel], 'limb torso');
   if (def.mirror) s += seg([p.sh2, p.sh], 'limb') + seg([p.hip2, p.hip], 'limb');
   s += seg([p.hip, p.kn, p.an, p.toe], 'limb');
@@ -233,7 +223,6 @@ function body(def, p) {
 function frame(def, k) {
   const b = Object.assign({}, def.a, def.b);
   const p = lerpPose(def.a, b, k);
-  // pose espelhada para props (ha2)
   if (def.mirror) { p.neck = p.neck || p.sh; if (!p.ha2) p.ha2 = mir(p.ha, p.neck[0]); }
   return body(def, p) + def.props(p);
 }
@@ -246,7 +235,6 @@ function tick(now) {
     if (!f.el.isConnected) { live.delete(f); continue; }
     const dur = f.def.dur || 2400;
     const t = ((now - f.t0) % dur) / dur;
-    // ida e volta suave com pequena pausa nas extremidades
     let k = (1 - Math.cos(2 * Math.PI * t)) / 2;
     k = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
     f.g.innerHTML = frame(f.def, k);
@@ -254,7 +242,6 @@ function tick(now) {
   if (live.size) requestAnimationFrame(tick); else running = false;
 }
 
-// Retorna o HTML de um SVG; animado = true para entrar no loop após inserir no DOM.
 export function figureSVG(anim, { animated = false, cls = '' } = {}) {
   const def = ANIMS[anim] || ANIMS.curl;
   const id = 'fg' + Math.random().toString(36).slice(2, 8);

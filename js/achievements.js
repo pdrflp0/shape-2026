@@ -1,4 +1,3 @@
-// Conquistas: calculadas a partir dos seus dados (nada a configurar). As novas aparecem no resumo do treino.
 import { db, kv } from './db.js';
 import { P, programSessions, parseKey, daysBetween } from './program.js';
 import { historyFor, sessionStats } from './progression.js';
@@ -27,7 +26,6 @@ const DEFS = [
 ];
 
 async function context() {
-  // só treinos do programa (a partir do início, sem os de teste)
   const ss = await programSessions();
   const weights = (await db.all('weights')).sort((a, b) => a.id < b.id ? -1 : 1);
   const days = await db.all('days');
@@ -38,7 +36,6 @@ async function context() {
   const perfect = [...perWeek.entries()].filter(([, n]) => n >= 4).map(([w]) => w).sort((a, b) => a - b);
   let bestStreak = 0, run = 0, prev = null;
   for (const w of perfect) { run = prev != null && w === prev + 1 ? run + 1 : 1; bestStreak = Math.max(bestStreak, run); prev = w; }
-  // média dos últimos 7 dias de registros
   const last = weights[weights.length - 1];
   let avg = null;
   if (last) {
@@ -72,12 +69,10 @@ export async function achievements() {
   });
 }
 
-// Retorna as conquistas desbloqueadas desde a última checagem (e marca como vistas)
 export async function newAchievements() {
   const list = await achievements();
   const unlocked = new Set(list.filter(a => a.unlocked).map(a => a.id));
   const before = await kv.get('achSeen', []);
-  // uma conquista que deixou de valer (ex.: treino apagado) volta a ser anunciada quando acontecer de novo
   const seen = new Set(before.filter(id => unlocked.has(id)));
   const fresh = list.filter(a => a.unlocked && !seen.has(a.id));
   if (fresh.length || seen.size !== before.length) await kv.set('achSeen', [...seen, ...fresh.map(a => a.id)]);

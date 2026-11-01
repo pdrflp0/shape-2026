@@ -1,4 +1,3 @@
-// Dieta: Mifflin-St Jeor, meta = gasto − déficit (450 kcal), proteína ~2 g/kg, água, checklist e favoritos.
 import { db, kv, uid } from '../db.js';
 import { dateKey, parseKey, addDays, fmtDate } from '../program.js';
 import { nav, sheet, toast, esc, ICON, fmtNum, confirmSheet, haptic } from '../ui.js';
@@ -17,7 +16,6 @@ export async function getProfile() {
   return Object.assign({ name: 'Pedro Felipe', sex: 'm', height: '', age: '', weight: 83, activity: 1.55, why: '' }, await kv.get('profile', {}));
 }
 
-// Peso atual = média dos últimos 7 dias (se houver), senão último registro, senão o do perfil
 export async function currentWeight() {
   const ws = (await db.all('weights')).sort((a, b) => a.id < b.id ? -1 : 1);
   const prof = await getProfile();
@@ -57,9 +55,8 @@ const CHECKS = [
   { id: 'steps', label: 'Passos', auto: true },
 ];
 
-let viewKey = null; // dia sendo visto (permite lançar no dia anterior)
+let viewKey = null;
 
-// Metas batidas marcam o checklist sozinhas (e desmarcam se você desfizer um lançamento)
 function autoChecks(day, t) {
   day.checks.protein = day.protein >= t.protein;
   day.checks.water = day.water / 1000 >= t.water;
@@ -81,7 +78,6 @@ export async function renderDiet(el) {
   ]);
   const pPct = d.protein / t.protein, wPct = d.water / 1000 / t.water;
   const kPct = t.kcal ? d.kcal / t.kcal : 0;
-  // últimos 7 dias de proteína
   const week = [];
   for (let i = 6; i >= 0; i--) {
     const k = dateKey(addDays(parseKey(today), -i));
@@ -89,7 +85,6 @@ export async function renderDiet(el) {
     week.push({ k, y: dd ? dd.protein : 0, label: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][parseKey(k).getDay()] });
   }
   const hit = week.filter(x => x.y >= t.protein).length;
-  // média só dos dias em que houve lançamento (dia sem registro não é dia com 0 g)
   const logged = week.filter(x => x.y > 0);
   const avgP = logged.length ? Math.round(logged.reduce((s, x) => s + x.y, 0) / logged.length) : 0;
 

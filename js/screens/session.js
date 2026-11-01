@@ -1,4 +1,3 @@
-// Treino ativo: lista de exercícios, tela do exercício, registro de séries, bi-sets, descanso e resumo.
 import { db, kv, uid } from '../db.js';
 import { P, dateKey, groupsOf, rirFor, restFor, activeWarnings, phaseOf, effWeek, completedSessions, weekLabel, programSessions, PLANNED_SESSIONS, fmtDate } from '../program.js';
 import { suggest, histKey, variantDef, fmtKg, lastLine, todayLine, historyFor, getPrimeLoads, platesText, warmupSets, computePRs, DEFAULT_PLATES } from '../progression.js';
@@ -9,12 +8,9 @@ import { openCardio } from './cardio.js';
 import { achievements, newAchievements } from '../achievements.js';
 import { shareSessionCard } from '../share.js';
 
-// ---------- Estado da sessão ativa (persistido para sobreviver a recarregar/fechar o app) ----------
 export const getActive = () => kv.get('active', null);
 const saveActive = s => kv.set('active', s);
 
-// Todas as escritas na sessão ativa passam por esta fila: evita que dois toques rápidos
-// (ex.: digitar a carga e marcar ✓) leiam o mesmo estado e um sobrescreva o outro.
 let chain = Promise.resolve();
 function update(fn) {
   const p = chain.then(async () => {
@@ -37,7 +33,6 @@ async function buildEntry(ex, variant, sessions, primes, date) {
   };
 }
 
-// Se o program.json mudou com um treino aberto: cria entradas para exercícios novos
 async function reconcile() {
   const s = await getActive();
   if (!s || !P.workouts[s.workout]) return;
@@ -74,7 +69,6 @@ export async function startSession(workoutKey) {
   openSession();
 }
 
-// Primeira sessão: pergunta (opcional) as cargas do "prime"
 async function askPrimeIfNeeded(workoutKey, sessions) {
   const asked = await kv.get('primeAsked', {});
   if (asked[workoutKey]) return;
@@ -101,7 +95,6 @@ async function askPrimeIfNeeded(workoutKey, sessions) {
   });
 }
 
-// ---------- Progresso da sessão ----------
 const exDone = (s, ex) => { const e = s.entries[ex.id]; return e && e.sets.length && e.sets.every(x => x.done); };
 const groupDone = (s, g) => g.items.every(ex => exDone(s, ex));
 function counts(s) {
@@ -112,10 +105,8 @@ const lastSetAt = s => Math.max(0, ...Object.values(s.entries).flatMap(e => e.se
 const STALE_MS = 4 * 3600 * 1000;
 export const isStale = s => !!s && Date.now() - Math.max(s.startedAt, lastSetAt(s)) > STALE_MS;
 
-// ---------- Tela: lista do treino ----------
 export async function openSession() {
   await reconcile();
-  // se já existe uma view de sessão na pilha, só volta para ela
   const idx = nav.stack.findIndex(v => v.opts.kind === 'session');
   if (idx >= 0) return nav.pop(nav.stack.length - 1 - idx);
   await nav.push(renderSession, { fullscreen: true, kind: 'session' });
@@ -180,7 +171,6 @@ async function renderSession(el) {
   };
 }
 
-// ---------- Tela: exercício (ou bi-set) ----------
 async function openGroup(groupId) {
   await nav.push((el, v) => renderGroup(el, v, groupId), { fullscreen: true, kind: 'exercise' });
 }
@@ -246,7 +236,6 @@ async function renderGroup(el, view, groupId) {
       </div>`;
   };
 
-  // aquecimento sugerido para compostos com carga
   const warm = infos.map(i => {
     if (i.ex.type !== 'compound' || i.ex.unit === 's') return '';
     const work = +(i.en.sets[0] && i.en.sets[0].kg) || 0;
@@ -257,7 +246,6 @@ async function renderGroup(el, view, groupId) {
       <small>Descanso curto entre elas (30–60 s). Não entram no histórico.</small></div></details>`;
   }).join('');
 
-  // linhas de séries: intercaladas no bi-set
   const rows = [];
   const maxSets = Math.max(...infos.map(i => i.en.sets.length));
   for (let si = 0; si < maxSets; si++) {
@@ -313,7 +301,6 @@ async function renderGroup(el, view, groupId) {
   animateFigures(el);
   markNext(el, s, g);
 
-  // ---------- Eventos ----------
   el.oninput = async e => {
     const t = e.target;
     if (t.dataset.kg == null && t.dataset.reps == null) return;
@@ -323,7 +310,6 @@ async function renderGroup(el, view, groupId) {
       const sets = st.entries[exId].sets, set = sets[+si];
       if (isKg) {
         set.kg = t.value === '' ? '' : parseFloat(t.value.replace(',', '.')) || 0;
-        // a carga digitada vale também para as próximas séries ainda não feitas
         sets.forEach((x, i) => { if (i > +si && !x.done) { x.kg = set.kg; const o = el.querySelector(`[data-kg="${exId}:${i}"]`); if (o) o.value = t.value; } });
       } else set.reps = parseInt(t.value) || 0;
     });
@@ -377,7 +363,6 @@ async function renderGroup(el, view, groupId) {
   };
 }
 
-// Linha de dica abaixo de cada série pendente: última vez + anilhas por lado
 function hintText(info, si, set, plates) {
   const parts = [];
   const prev = info.sug.last && info.sug.last.sets[si];
@@ -429,7 +414,6 @@ function stepValue(el, b) {
   inp.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-// + Série / − Série (no bi-set, vale para os dois exercícios)
 async function changeSets(g, add) {
   haptic();
   let changed = 0;
@@ -497,7 +481,6 @@ async function toggleSet(el, groupId, id, btn) {
   const all = gs.every(x => groupDone(s, x));
   if (all) { setTimeout(() => nav.refresh(), 450); toast('Última série! Finalize o treino 🎉', 'ok'); return; }
 
-  // descanso
   const dur = g.superset ? Math.max(...await Promise.all(g.items.map(restFor))) : await restFor(ex);
   const next = describeNext(s, gs, g);
   setTimeout(() => nav.refresh(), 450);
@@ -519,7 +502,6 @@ function describeNext(s, gs, g) {
   return { title: 'Fim do treino', sub: 'Finalize e vá para o cardio', say: 'Fim do treino.' };
 }
 
-// Série por tempo (prancha)
 async function timedSet(el, groupId, id) {
   unlockAudio();
   const [exId, si] = id.split(':');
@@ -530,7 +512,7 @@ async function timedSet(el, groupId, id) {
     <div class="tt"><b class="num">${secs}</b><small>segure firme</small></div></div>
     <div class="row gap"><button class="btn flex" data-close>Cancelar</button><button class="btn primary flex" data-ok>Terminei</button></div></div>`, {
     onMount(root) {
-      let go = 3; // contagem de preparação
+      let go = 3;
       const b = root.querySelector('.tt b'), fg = root.querySelector('.fg'), small = root.querySelector('.tt small');
       small.textContent = 'prepare-se'; b.textContent = go;
       const pre = setInterval(() => {
@@ -583,8 +565,7 @@ async function editRest(exId) {
   };
 }
 
-// ---------- Timer de descanso ----------
-let rest = null; // { cd, sheet, mini }
+let rest = null;
 async function startRest(duration, next) {
   stopRest();
   const r = { endAt: Date.now() + duration * 1000, duration, next };
@@ -618,7 +599,6 @@ function showRest(r, open) {
     },
     onWarn: () => { beep({ freq: 740, dur: 0.12 }); flash('warn'); haptic(); },
     onDone: async () => {
-      // se o app ficou em segundo plano e voltou muito depois, só avisa sem alarde
       const late = Date.now() - (rest ? rest.cd.endAt : r.endAt) > 60000;
       if (!late) { beep({ freq: 980, dur: 0.22, count: 3 }); flash(); haptic('heavy'); speak(`Bora! ${r.next.say || r.next.title}`); }
       toast(late ? 'O descanso já tinha terminado' : 'Descanso terminado — bora! 💪', 'ok');
@@ -641,7 +621,7 @@ function showRest(r, open) {
       if (b.dataset.d) {
         haptic();
         rest.cd.add(+b.dataset.d);
-        if (!rest) return; // −15 s pode encerrar o descanso
+        if (!rest) return;
         ui.small.textContent = 'de ' + mmss(rest.cd.duration);
         const endAt = rest.cd.endAt, duration = rest.cd.duration;
         update(st => { if (st.rest) { st.rest.endAt = endAt; st.rest.duration = duration; } });
@@ -665,7 +645,6 @@ function showRest(r, open) {
   open ? openSheet() : showMini();
 }
 
-// ---------- Finalizar ----------
 function finishSheet(done, total) {
   return new Promise(res => {
     const sh = sheet(`<h3>Finalizar treino?</h3>
@@ -703,12 +682,10 @@ export async function finishFlow() {
   }
   stopRest();
   const prevSessions = await completedSessions();
-  // se esqueceu o treino aberto, a duração vai até pouco depois da última série
   const lastAt = lastSetAt(s);
   s.endedAt = lastAt && Date.now() - lastAt > 30 * 60000 ? lastAt + 3 * 60000 : Date.now();
   s.rest = null;
   if (s.date < P.start) s.test = true;
-  // só séries feitas entram no histórico
   let volume = 0, sets = 0;
   for (const [exId, en] of Object.entries(s.entries)) {
     if (!P.ex[exId]) continue;

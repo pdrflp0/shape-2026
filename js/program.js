@@ -1,4 +1,3 @@
-// Programa: carrega program.json e responde "em que semana/fase estou", "qual o próximo treino", etc.
 import { db, kv } from './db.js';
 
 export let P = null;
@@ -6,7 +5,6 @@ export let P = null;
 export async function loadProgram() {
   const r = await fetch('program.json', { cache: 'no-cache' }).catch(() => fetch('program.json'));
   P = await r.json();
-  // índice de exercícios
   P.ex = {};
   for (const [wk, w] of Object.entries(P.workouts)) {
     w.key = wk;
@@ -17,12 +15,10 @@ export async function loadProgram() {
   return P;
 }
 
-// Metas personalizadas no Perfil sobrescrevem as do program.json
 export async function applyPersonal() {
   P.goal = Object.assign({}, P.baseGoal, await kv.get('goal', {}));
 }
 
-// ---------- Datas (sempre em horário local) ----------
 export const pad = n => String(n).padStart(2, '0');
 export const dateKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export const parseKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -36,14 +32,12 @@ export const fmtShort = d => { d = typeof d === 'string' ? parseKey(d) : d; retu
 
 export const TOTAL_WEEKS = 11;
 
-// Semana do programa (1..11). 0 = ainda não começou, 12 = terminou.
 export function weekOf(d = new Date()) {
   const diff = daysBetween(parseKey(P.start), d);
   if (diff < 0) return 0;
   if (daysBetween(parseKey(P.end), d) > 0) return TOTAL_WEEKS + 1;
   return Math.min(TOTAL_WEEKS, Math.floor(diff / 7) + 1);
 }
-// Para regras de séries/RIR: antes do início usa a semana 1; depois do fim, a última.
 export const effWeek = (d = new Date()) => Math.min(TOTAL_WEEKS, Math.max(1, weekOf(d)));
 export const phaseOf = (d = new Date()) => phaseForWeek(effWeek(d));
 export const phaseForWeek = w => P.phases.find(p => p.weeks.includes(w)) || P.phases[P.phases.length - 1];
@@ -56,7 +50,6 @@ export function weekLabel(d = new Date()) {
   return { title: `Semana ${w} de ${TOTAL_WEEKS}`, sub: phaseForWeek(w).name, week: w };
 }
 
-// Séries ajustadas pela fase
 export function setsFor(ex, d = new Date()) {
   const ph = phaseOf(d);
   if (ph.sets === 'two') return Math.min(2, ex.sets);
@@ -81,19 +74,15 @@ export async function restFor(ex) {
   return ex.type === 'compound' ? s.restCompound : s.restIsolation;
 }
 
-// ---------- Sequência A→B (não pula treino se faltar) ----------
 export async function completedSessions() {
   const all = await db.all('sessions');
   return all.filter(s => s.endedAt).sort((a, b) => a.startedAt - b.startedAt);
 }
 
-// Treinos feitos antes do início do programa (ou marcados como teste) não contam para a sequência
 export const countsForProgram = s => !s.test && s.date >= P.start;
 export const programSessions = async () => (await completedSessions()).filter(countsForProgram);
 export const PLANNED_SESSIONS = () => P.sequence.length * TOTAL_WEEKS;
 
-// Próximo pendente: o treino da sequência feito menos vezes; empate → o que vem primeiro na ordem A→B.
-// Assim, se você pular um (ou fizer outro fora de ordem), o que faltou continua aparecendo.
 export async function nextWorkoutKey() {
   const done = await programSessions();
   const count = Object.fromEntries(P.sequence.map(k => [k, 0]));
@@ -104,7 +93,6 @@ export async function nextWorkoutKey() {
 
 export const plannedFor = d => P.schedule[String(d.getDay())];
 
-// Grupos de exercício (bi-sets juntos) na ordem do treino
 export function groupsOf(workoutKey) {
   const w = P.workouts[workoutKey];
   const groups = [];

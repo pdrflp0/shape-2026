@@ -1,4 +1,3 @@
-// Boot do app: carrega o programa, registra o service worker e monta as abas.
 import { loadProgram } from './program.js';
 import { nav, ICON, $$, applyTheme, setHaptics } from './ui.js';
 import { requestPersist, kv } from './db.js';
@@ -19,7 +18,6 @@ const TABS = [
 ];
 
 async function boot() {
-  // preferências visuais antes do primeiro render (evita piscar a cor padrão)
   const st = await kv.get('settings', {});
   applyTheme(st.theme || 'lime');
   setHaptics(st.haptics !== false);
@@ -37,25 +35,20 @@ async function boot() {
   await nav.root('today', renderToday);
   document.getElementById('splash').classList.add('gone');
 
-  // relógio de treino em qualquer elemento [data-elapsed]
   setInterval(() => $$('[data-elapsed]').forEach(n => { n.textContent = hhmmss(Date.now() - +n.dataset.elapsed); }), 1000);
 
-  // áudio do iOS só destrava após um toque
   const first = () => { unlockAudio(); requestPersist(); document.removeEventListener('touchend', first); document.removeEventListener('click', first); };
   document.addEventListener('touchend', first, { passive: true });
   document.addEventListener('click', first);
 
-  // se havia um treino em andamento, mantém tela acesa e restaura o descanso
   if (await getActive()) { keepAwake(true); restoreRest(); }
 
-  // ao voltar para o app, atualiza a tela (ex.: mudou o dia)
   let lastDay = new Date().getDate();
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && new Date().getDate() !== lastDay) { lastDay = new Date().getDate(); nav.refresh(nav.stack[0]); }
   });
 }
 
-// Nova versão baixada: oferece recarregar (treino em andamento e descanso são restaurados depois)
 function showUpdate() {
   if (document.querySelector('.update-bar')) return;
   const b = document.createElement('div');
@@ -68,7 +61,6 @@ function showUpdate() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
-      // o iOS mantém o app aberto por dias: procura versão nova sempre que ele volta para a frente
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
       reg.addEventListener('updatefound', () => {
         const w = reg.installing;

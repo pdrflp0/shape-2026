@@ -22,7 +22,7 @@ Tudo do programa está em **`program.json`**. Você não precisa mexer em mais n
 
 O histórico fica ligado ao `id` do exercício. Se você trocar o `id`, o histórico antigo deixa de aparecer para ele.
 
-Ao publicar uma mudança, **aumente `VERSION` em `sw.js`** (ex.: `shape2026-v3` → `v4`). O app baixa a versão nova inteira e mostra **"Nova versão do app pronta → Atualizar"**. Um treino em andamento e o descanso continuam depois de atualizar.
+Ao publicar uma mudança, **aumente `VERSION` em `sw.js`** (ex.: `shape2026-v4` → `v5`). O app baixa a versão nova inteira e mostra **"Nova versão do app pronta → Atualizar"**. Um treino em andamento e o descanso continuam depois de atualizar.
 
 ## O que dá para personalizar no app (Perfil)
 

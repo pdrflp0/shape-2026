@@ -1,4 +1,3 @@
-// Gráficos SVG leves que "se desenham" ao abrir (stroke-dashoffset animado no CSS).
 import { fmtShort } from './program.js';
 
 const W = 340, H = 180, PL = 34, PR = 10, PT = 12, PB = 24;
@@ -28,18 +27,15 @@ export function lineChart(series, opts = {}) {
   const { x0, x1, y0, y1, sx, sy } = scale(series, opts);
   const fmt = opts.yFmt || (v => Math.round(v));
   let g = '';
-  // grade
   for (let i = 0; i <= 3; i++) {
     const v = y0 + (y1 - y0) * i / 3, y = sy(v);
     g += `<line class="grid" x1="${PL}" x2="${W - PR}" y1="${y}" y2="${y}"/><text class="axis" x="${PL - 6}" y="${y + 3}" text-anchor="end">${fmt(v)}</text>`;
   }
-  // eixo x (datas)
   const ticks = 4;
   for (let i = 0; i <= ticks; i++) {
     const v = x0 + (x1 - x0) * i / ticks;
     g += `<text class="axis" x="${sx(v)}" y="${H - 6}" text-anchor="middle">${opts.xFmt ? opts.xFmt(v) : fmtShort(new Date(v))}</text>`;
   }
-  // faixa de meta
   if (opts.band) {
     const [ya, yb] = opts.band;
     g += `<rect class="band" x="${PL}" width="${W - PL - PR}" y="${sy(yb)}" height="${Math.max(1, sy(ya) - sy(yb))}"/>`;
@@ -75,7 +71,6 @@ export function barChart(points, opts = {}) {
   return `<svg class="chart" viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
 
-// Anel de progresso (usado em vários cards)
 export function ring(pct, { size = 64, stroke = 7, cls = '', label = '' } = {}) {
   const r = (size - stroke) / 2, c = 2 * Math.PI * r, off = c * (1 - Math.max(0, Math.min(1, pct)));
   return `<svg class="ring ${cls}" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">

@@ -1,5 +1,3 @@
-// Utilitários de interface: navegação com transições, bottom sheets, toasts, confete, imagens.
-
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -30,9 +28,7 @@ export const ICON = {
   edit: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></svg>',
 };
 
-// ---------- Navegação ----------
 const viewsEl = () => $('#views');
-// a animação de entrada usa transform; removê-la ao terminar evita que elementos position:fixed (dock) rolem junto
 const settle = el => el.addEventListener('animationend', e => { if (e.target === el) el.classList.remove('enter-slide', 'enter-fade'); });
 export const nav = {
   stack: [],
@@ -81,7 +77,7 @@ export const nav = {
   async refresh(v = this.stack[this.stack.length - 1], { animate = false } = {}) {
     if (!v) return;
     const st = v.el.scrollTop;
-    v.el.classList.toggle('static', !animate); // re-render sem repetir as animações de entrada
+    v.el.classList.toggle('static', !animate);
     await v.render(v.el, v);
     afterRender(v.el);
     v.el.scrollTop = st;
@@ -104,13 +100,12 @@ export const header = (title, { back = true, right = '', sub = '' } = {}) => `
     <div class="bar-right">${right || '<span class="sp"></span>'}</div>
   </header>`;
 
-// ---------- Bottom sheet ----------
 export function sheet(html, { onMount, dismissible = true, cls = '' } = {}) {
   const wrap = document.createElement('div');
   wrap.className = 'sheet-wrap';
   wrap.innerHTML = `<div class="sheet-bg"></div><div class="sheet ${cls}"><div class="grabber"></div>${html}</div>`;
   document.body.appendChild(wrap);
-  void wrap.offsetWidth; // força o layout para a transição de entrada
+  void wrap.offsetWidth;
   wrap.classList.add('open');
   const api = {
     el: wrap.querySelector('.sheet'),
@@ -122,7 +117,6 @@ export function sheet(html, { onMount, dismissible = true, cls = '' } = {}) {
   };
   if (dismissible) wrap.querySelector('.sheet-bg').addEventListener('click', () => api.close());
   wrap.addEventListener('click', e => { if (e.target.closest('[data-close]')) api.close(); });
-  // arrastar para baixo para fechar
   if (dismissible) {
     const sh = api.el; let y0 = null, dy = 0;
     sh.querySelector('.grabber').addEventListener('touchstart', e => { y0 = e.touches[0].clientY; }, { passive: true });
@@ -156,7 +150,6 @@ export function promptSheet(title, { value = '', type = 'text', placeholder = ''
   });
 }
 
-// ---------- Toast ----------
 export function toast(msg, kind = '') {
   const t = document.createElement('div');
   t.className = 'toast ' + kind;
@@ -167,7 +160,6 @@ export function toast(msg, kind = '') {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2200);
 }
 
-// ---------- Confete discreto ----------
 export function confetti() {
   if (reduceMotion()) return;
   const c = document.createElement('canvas');
@@ -198,7 +190,6 @@ export function confetti() {
   })(t0);
 }
 
-// ---------- Imagens ----------
 export async function compressImage(file, max = 1400, q = 0.82) {
   const url = URL.createObjectURL(file);
   try {
@@ -210,7 +201,6 @@ export async function compressImage(file, max = 1400, q = 0.82) {
     return await new Promise(res => cv.toBlob(res, 'image/jpeg', q));
   } finally { URL.revokeObjectURL(url); }
 }
-// URLs de imagens: cache por chave (id + data) para não criar uma URL nova a cada render
 const urlCache = new Map();
 export function blobURL(b, key) {
   if (!b) return '';
@@ -222,7 +212,6 @@ export function blobURL(b, key) {
   urlCache.set(key, { b, url });
   return url;
 }
-// Sem o atributo "capture", o iOS oferece Tirar Foto / Fototeca / Arquivos
 export function pickImage({ capture = false } = {}) {
   return new Promise(res => {
     const i = document.createElement('input');
@@ -233,7 +222,6 @@ export function pickImage({ capture = false } = {}) {
   });
 }
 
-// Anima números (contagem) e barras após render
 onAfterRender(el => {
   if (reduceMotion() || el.classList.contains('static')) return;
   el.querySelectorAll('[data-count]').forEach(n => {
@@ -243,13 +231,10 @@ onAfterRender(el => {
       n.textContent = fmtNum(to * e, d);
       if (k < 1) requestAnimationFrame(f);
     })(t0);
-    // se o iOS pausar a animação (app em segundo plano), o número final aparece mesmo assim
     setTimeout(() => { n.textContent = fmtNum(to, d); }, dur + 150);
   });
 });
 
-// ---------- Vibração / háptico ----------
-// iOS 18+: tocar num <input type=checkbox switch> gera um "tique" do Taptic Engine. Android: Vibration API.
 let hapticEl = null, hapticOn = true;
 export const setHaptics = on => { hapticOn = on; };
 export function haptic(kind = 'light') {
@@ -270,7 +255,6 @@ export function haptic(kind = 'light') {
   } catch (e) {}
 }
 
-// ---------- Tema (cor de destaque personalizável) ----------
 export const THEMES = {
   lime: { name: 'Limão', accent: '#c6ff3d', rgb: '198,255,61', hi: '#e6ff8f', ink: '#0b0f02', accent2: '#ff8a3d' },
   orange: { name: 'Laranja', accent: '#ff8a3d', rgb: '255,138,61', hi: '#ffc08f', ink: '#1a0b00', accent2: '#c6ff3d' },

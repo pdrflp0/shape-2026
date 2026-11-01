@@ -1,4 +1,3 @@
-// Cardio: esteira pós-treino com contagem regressiva, lembretes e passos do dia.
 import { db, kv } from '../db.js';
 import { P, effWeek, cardioForWeek, dateKey } from '../program.js';
 import { Countdown, beep, flash, keepAwake, unlockAudio, mmss } from '../timer.js';
@@ -27,7 +26,6 @@ async function renderCardio(el, view, sessionId, kind) {
   const running = t && t.paused == null && remaining > 0;
   const [g0, g1] = P.stepsGoal;
   const done = session?.cardio?.done;
-  // última inclinação usada (ou o início da faixa do plano)
   const lastIncl = (await kv.get('lastIncline', null)) ?? (parseFloat(plan.incline) || 10);
 
   el.innerHTML = `

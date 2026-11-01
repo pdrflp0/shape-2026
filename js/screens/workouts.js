@@ -1,4 +1,3 @@
-// Treinos: os 4 treinos, periodização, biblioteca de exercícios e detalhe de sessões passadas.
 import { db, kv } from '../db.js';
 import { P, nextWorkoutKey, groupsOf, setsFor, rirFor, effWeek, phaseForWeek, cardioForWeek, weekOf, completedSessions, fmtDate, TOTAL_WEEKS, parseKey, addDays, fmtShort } from '../program.js';
 import { historyFor, histKey, recordsFor, fmtKg, variantDef, computePRs } from '../progression.js';
@@ -107,7 +106,7 @@ export async function renderExerciseInfo(el, id) {
   animateFigures(el);
 }
 
-let editing = null; // id da sessão em modo edição
+let editing = null;
 
 export async function renderSessionDetail(el, id) {
   const s = await db.get('sessions', id);

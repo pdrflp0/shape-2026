@@ -1,4 +1,3 @@
-// Progresso: peso (média semanal, ritmo, alertas), exercícios (carga, 1RM, volume, recordes), fotos, medidas, heatmap.
 import { db } from '../db.js';
 import { P, dateKey, parseKey, addDays, fmtDate, fmtShort, completedSessions, countsForProgram, daysBetween, phaseForWeek, PLANNED_SESSIONS, TOTAL_WEEKS } from '../program.js';
 import { historyFor, histKey, sessionStats, recordsFor, fmtKg } from '../progression.js';
@@ -9,10 +8,8 @@ let tab = 'peso';
 let selEx = null;
 export const setProgressTab = t => { tab = t; };
 
-// ---------- Cálculos de peso ----------
 export async function weightStats() {
   const ws = (await db.all('weights')).sort((a, b) => a.id < b.id ? -1 : 1);
-  // médias por semana do programa (segunda a domingo)
   const start = parseKey(P.start);
   const byWeek = new Map();
   for (const w of ws) {
@@ -23,7 +20,6 @@ export async function weightStats() {
   const weekly = [...byWeek.entries()].sort((a, b) => a[0] - b[0]).map(([wk, arr]) => ({
     wk, avg: arr.reduce((s, x) => s + x, 0) / arr.length, n: arr.length, mid: addDays(start, wk * 7 + 3),
   }));
-  // ritmo: diferença entre médias semanais consecutivas
   const rates = [];
   for (let i = 1; i < weekly.length; i++) {
     const gap = weekly[i].wk - weekly[i - 1].wk;
@@ -115,7 +111,6 @@ async function renderWeight(body) {
 
 async function renderExercises(body) {
   const sessions = await completedSessions();
-  // todas as chaves com histórico (principal e alternativa)
   const keys = [];
   for (const w of Object.values(P.workouts)) for (const ex of w.exercises) {
     if (ex.unit === 's') continue;
@@ -224,7 +219,6 @@ async function renderMeasures(body) {
   };
 }
 
-// Streak de semanas cumpridas (4 treinos na semana)
 export async function weekStreak() {
   const ss = (await completedSessions()).filter(countsForProgram);
   const start = parseKey(P.start);
@@ -232,7 +226,6 @@ export async function weekStreak() {
   for (const s of ss) { const wk = Math.floor(daysBetween(start, parseKey(s.date)) / 7); if (wk >= 0) per.set(wk, (per.get(wk) || 0) + 1); }
   const curWk = Math.floor(daysBetween(start, new Date()) / 7);
   let streak = 0;
-  // a semana atual conta se já estiver cumprida; senão começa da anterior
   let w = (per.get(curWk) || 0) >= 4 ? curWk : curWk - 1;
   while (w >= 0 && (per.get(w) || 0) >= 4) { streak++; w--; }
   return { streak, per, curWk };
@@ -257,7 +250,6 @@ async function renderCalendar(body) {
       grid += `<div class="c ${trained.has(k) ? 't1' : cardioDays.has(k) ? 't2' : ''} ${k === today ? 'today' : ''} ${out ? 'out' : ''}" style="animation-delay:${(w * 7 + d) * 8}ms" title="${fmtShort(day)}"></div>`;
     }
   }
-  // resumo de cada semana do programa (da mais recente para a primeira)
   const weeks = [];
   for (let w = Math.min(curWk, TOTAL_WEEKS - 1); w >= 0; w--) {
     const w0 = dateKey(addDays(start, w * 7)), w1 = dateKey(addDays(start, w * 7 + 6));

@@ -1,4 +1,3 @@
-// Perfil e configurações: você, conquistas, metas, aparência, treino, cargas do prime, backup.
 import { db, kv, exportBackup, importBackup, requestPersist, STORES } from '../db.js';
 import { P, applyPersonal, programSessions, weekLabel } from '../program.js';
 import { DEFAULT_PLATES, fmtKg } from '../progression.js';

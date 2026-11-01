@@ -1,14 +1,12 @@
-// Gera os ícones PNG do app (sem dependências): node tools/make-icons.mjs
 import { writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
 const BG = [7, 8, 10], ACC = [198, 255, 61];
-// formas em coordenadas 0..1: retângulos arredondados [cx, cy, halfW, halfH, radius]
 const shapes = [
-  [0.5, 0.5, 0.24, 0.035, 0.02],     // barra
-  [0.30, 0.5, 0.045, 0.2, 0.03],     // anilhas internas
+  [0.5, 0.5, 0.24, 0.035, 0.02],
+  [0.30, 0.5, 0.045, 0.2, 0.03],
   [0.70, 0.5, 0.045, 0.2, 0.03],
-  [0.215, 0.5, 0.035, 0.13, 0.025],  // anilhas externas
+  [0.215, 0.5, 0.035, 0.13, 0.025],
   [0.785, 0.5, 0.035, 0.13, 0.025],
 ];
 const sd = (x, y, [cx, cy, hw, hh, r]) => {
@@ -22,7 +20,6 @@ function render(size) {
     raw[y * (size * 4 + 1)] = 0;
     for (let x = 0; x < size; x++) {
       const u = (x + 0.5) / size, v = (y + 0.5) / size;
-      // brilho radial sutil no fundo
       const g = Math.max(0, 1 - Math.hypot(u - 0.5, v - 0.42) / 0.62) ** 2 * 0.16;
       let c = BG.map((b, i) => b + (ACC[i] - b) * g);
       const d = Math.min(...shapes.map(s => sd(u, v, s)));
@@ -57,7 +54,6 @@ function png(w, h, raw) {
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
 }
 
-// Tela de abertura do iOS: fundo escuro liso + logo (quadrado limão com o haltere escuro)
 function renderSplash(W, H) {
   const raw = Buffer.alloc((W * 4 + 1) * H);
   const L = Math.round(Math.min(W, H) * 0.24), lx = (W - L) / 2, ly = H * 0.44 - L / 2, lr = L * 0.23;
@@ -84,7 +80,6 @@ function renderSplash(W, H) {
   }
   return png(W, H, raw);
 }
-// [largura CSS, altura CSS, densidade] dos iPhones (portrait)
 export const SPLASH = [
   [440, 956, 3], [402, 874, 3], [420, 912, 3], [430, 932, 3], [393, 852, 3],
   [428, 926, 3], [390, 844, 3], [375, 812, 3], [414, 896, 2], [375, 667, 2],
